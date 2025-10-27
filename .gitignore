@@ -1,0 +1,59 @@
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+检出失败，将重试，可在代码库设置中选择其他分支
+*.tsbuildinfo
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+*.iml
+.gradle/
+local.properties
+
+# iOS
+ios/build/
+ios/Pods/
+ios/DerivedData/
+*.xcworkspace/xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
