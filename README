@@ -1,0 +1,7 @@
+Instalar el programa:
+    pnpm install
+
+Iniciar programa:
+    npx expo run:android
+    npx expo run:ios
+
