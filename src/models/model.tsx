@@ -4,7 +4,7 @@ type ObjectId = BSON.ObjectId;
 export class Usuario extends Realm.Object {
   _id!: ObjectId;
   nombre!: string;
-  static schema = {
+  static schema: Realm.ObjectSchema = {
     name: 'Usuario',
     primaryKey: '_id',
     properties: {
@@ -18,7 +18,7 @@ export class Horario extends Realm.Object {
   _id!: ObjectId;
   nombre!: string;
   materias!: Realm.List<Materia>;
-  static schema = {
+  static schema: Realm.ObjectSchema = {
     name: 'Horario',
     primaryKey: '_id',
     properties: {
@@ -35,7 +35,7 @@ export class Materia extends Realm.Object {
   colorHex!: string;
   horario!: Horario;
   clases!: Realm.List<Clase>;
-  static schema = {
+  static schema: Realm.ObjectSchema = {
     name: 'Materia',
     primaryKey: '_id',
     properties: {
@@ -54,7 +54,7 @@ export class Clase extends Realm.Object {
   horaEntrada!: Date;
   horaSalida!: Date;
   materia!: Materia;
-  static schema = {
+  static schema: Realm.ObjectSchema = {
     name: 'Clase',
     primaryKey: '_id',
     properties: {
@@ -74,7 +74,7 @@ export class ActividadUni extends Realm.Object {
   puntaje!: number;
   materia?: Materia;
   clase?: Clase;
-  static schema = {
+  static schema: Realm.ObjectSchema = {
     name: 'ActividadUni',
     primaryKey: '_id',
     properties: {
@@ -94,7 +94,7 @@ export class Actividad extends Realm.Object {
   hora!: Date;
   titulo!: string;
   descripcion!: string;
-  static schema = {
+  static schema: Realm.ObjectSchema = {
     name: 'Actividad',
     primaryKey: '_id',
     properties: {
