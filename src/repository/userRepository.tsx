@@ -2,11 +2,10 @@ import { BSON } from 'realm';
 import { openRealm } from '../database/realm';
 
 export class UserRepository {
-  private realm: Realm = openRealm();
+  private realm = openRealm();
 
-  get hasUser(): boolean {
-    const users = this.realm.objects('Usuario');
-    return users.length > 0;
+  hasUser(): boolean {
+    return this.realm.objects('Usuario').length > 0;
   }
 
   createUser(nombre: string): { success: boolean; error?: string } {
