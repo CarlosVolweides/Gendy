@@ -1,0 +1,10 @@
+
+
+Flujo de crear una materia con materiasRepository:
+    llamamos a repo.createMateria() y esto nos dara el id
+    llamamos a repo.pushClases() pasando id y clases 
+
+    el metodo pushClases ya crea las clases en la base de datos, por lo que no es 
+    necesario usar un createClase de clasesRepository
+
+    igual al eliminar materia, la funcion deleteMateria() tambien elimina las clases internas
