@@ -70,6 +70,7 @@ export class HorarioRepository {
                 return { success: false, error: 'Horario no encontrado' }
             }
             this.realm.write(() => {
+                this.realm.delete(Horario.materias)
                 this.realm.delete(Horario)
             })
             return { success: true }
