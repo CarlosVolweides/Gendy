@@ -1,23 +1,19 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { UserExample } from './src/views/userExample';
+import { ThemeProvider } from 'styled-components/native';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { useColorScheme } from 'react-native';
+import AppNavigator from './src/views/navigation/appNavigator';
+import { lightTheme, darkTheme } from './src/views/styles/theme';
 
 export default function App() {
+  const scheme = useColorScheme(); // detecta dark o light del sistema
+  const theme = scheme === 'dark' ? darkTheme : lightTheme;
+
   return (
-    <View style={styles.container}>
-      <Text>Hola mundo! esto es Gendy app</Text>
-      <UserExample />
-      <StatusBar style="auto" />
-    </View>
+    <PaperProvider theme={theme}>
+      <ThemeProvider theme={theme}>
+        <AppNavigator />
+      </ThemeProvider>
+    </PaperProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
