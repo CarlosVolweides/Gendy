@@ -12,13 +12,19 @@ export class MateriasRepository {
 
     createMateria(nombre: string, colorHex: string, horarioId: ObjectId): { success: boolean; materiaId?: ObjectId; error?: string } {
         try{
+            // Obtener el objeto Horario primero
+            const horario = this.realm.objectForPrimaryKey('Horario', horarioId);
+            if (!horario) {
+                return { success: false, error: 'Horario no encontrado' };
+            }
+            
             let materiaId = new BSON.ObjectId()
             this.realm.write(() => {
                 this.realm.create('Materia', {
                     _id: materiaId,
                     nombre,
                     colorHex,
-                    horario: horarioId,
+                    horario: horario, // Pasar el objeto Horario, no el ID
                     clases: [],
                 })
             })
@@ -83,6 +89,16 @@ export class MateriasRepository {
         } catch (error: any) {
             console.error('Error al eliminar materia:', error);
             return { success: false, error: error.message };
+        }
+    }
+
+    getMaterias(horarioId: ObjectId): MateriaType[] {
+        try {
+            const materias = this.realm.objects('Materia').filtered('horario._id == $0', horarioId) as unknown as MateriaType[]
+            return Array.from(materias)
+        } catch (error: any) {
+            console.error('Error al obtener materias:', error);
+            return []
         }
     }
 }

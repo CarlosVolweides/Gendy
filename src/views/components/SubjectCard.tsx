@@ -100,8 +100,8 @@ const ColorButton = styled.TouchableOpacity<{ color: string; selected: boolean }
   background-color: ${({ color }) => color};
   align-items: center;
   justify-content: center;
-  borderWidth: ${({ selected }) => (selected ? 3 : 0)};
-  borderColor: #fff;
+  border-width: ${({ selected }) => (selected ? 3 : 0)}px;
+  border-color: #fff;
   margin-right: 12px;
   margin-bottom: 12px;
 `;

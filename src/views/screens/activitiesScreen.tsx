@@ -3,6 +3,10 @@ import { View, ScrollView, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import { Text, Modal, Portal, TextInput, Button, RadioButton, Menu, IconButton } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
+import { observer } from 'mobx-react-lite';
+import { useViewModelContext } from '../../context/ViewModelContext';
+import { convertMateriaToSubject } from '../../utils/typeConverters';
+import { ActividadType } from '../../repository/actividadesRepository';
 
 interface Activity {
   id: string;
@@ -108,27 +112,84 @@ const isSameDay = (date1: Date, date2: Date): boolean => {
   );
 };
 
-export default function ActivitiesScreen() {
-  // Mock subjects - in real app, this would come from Realm or context
-  const [subjects] = React.useState<Subject[]>([
-    {
-      id: '1',
-      title: 'Programación Web',
-      schedules: [
-        { day: 'Lunes', startTime: '08:00', endTime: '09:30' },
-        { day: 'Miércoles', startTime: '08:00', endTime: '09:30' },
-      ],
-      color: '#2563EB',
-    },
-    {
-      id: '2',
-      title: 'Diseño de Interfaces',
-      schedules: [
-        { day: 'Martes', startTime: '10:15', endTime: '11:45' },
-      ],
-      color: '#9333EA',
-    },
-  ]);
+// Helper function to convert ActividadType to Activity (UI format)
+function convertActividadToActivityUI(actividad: ActividadType): Activity {
+  // Extract subjectId from descripcion if it was stored there (format: "subjectId:xxx|description")
+  let description = actividad.descripcion;
+  let subjectId: string | undefined = undefined;
+  
+  if (description.includes('|subjectId:')) {
+    const parts = description.split('|subjectId:');
+    description = parts[0];
+    subjectId = parts[1];
+  }
+
+  // Extract time from hora if available
+  const time = actividad.hora ? formatTimeFromDate(actividad.hora) : undefined;
+
+  return {
+    id: actividad._id.toString(),
+    date: new Date(actividad.dia),
+    title: actividad.titulo,
+    description,
+    time,
+    subjectId,
+  };
+}
+
+// Helper function to format time from Date
+function formatTimeFromDate(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+// Helper function to convert Activity (UI) to ActividadType format for creation
+function prepareActividadForCreation(
+  dia: Date,
+  hora: Date,
+  titulo: string,
+  descripcion: string,
+  subjectId?: string
+): { dia: Date; hora: Date; titulo: string; descripcion: string } {
+  // Store subjectId in descripcion if provided
+  let finalDescripcion = descripcion;
+  if (subjectId) {
+    finalDescripcion = `${descripcion}|subjectId:${subjectId}`;
+  }
+  
+  return {
+    dia,
+    hora,
+    titulo,
+    descripcion: finalDescripcion,
+  };
+}
+
+const ActivitiesScreen = observer(() => {
+  const { materiasViewModel, horarioViewModel, actividadesViewModel } = useViewModelContext();
+
+  // Cargar horarios y materias al montar el componente
+  React.useEffect(() => {
+    horarioViewModel.loadHorarios();
+    actividadesViewModel.loadActividades();
+  }, []);
+
+  React.useEffect(() => {
+    if (horarioViewModel.activeHorarioId) {
+      materiasViewModel.loadMaterias(horarioViewModel.activeHorarioId.toString());
+    }
+  }, [horarioViewModel.activeHorarioId]);
+
+  // Convertir materias del horario activo a formato Subject
+  const subjects: Subject[] = React.useMemo(() => {
+    if (!horarioViewModel.activeHorarioId) {
+      return [];
+    }
+    return materiasViewModel.materias
+      .filter(materia => materia.horario._id.toString() === horarioViewModel.activeHorarioId?.toString())
+      .map(convertMateriaToSubject);
+  }, [materiasViewModel.materias, horarioViewModel.activeHorarioId]);
 
   const convertedSubjects = subjects.map(subject => ({
     id: subject.id,
@@ -141,34 +202,13 @@ export default function ActivitiesScreen() {
     })).filter(s => s.day !== -1),
   }));
 
+  // Convertir actividades de ViewModel a formato Activity (UI)
+  const activities: Activity[] = React.useMemo(() => {
+    return actividadesViewModel.actividades.map(convertActividadToActivityUI);
+  }, [actividadesViewModel.actividades]);
+
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
   const [isAddActivityOpen, setIsAddActivityOpen] = React.useState(false);
-  const [activities, setActivities] = React.useState<Activity[]>([
-    {
-      id: '1',
-      date: new Date(2025, 9, 13),
-      title: 'Examen práctico',
-      description: 'Simulación de sistemas',
-    },
-    {
-      id: '2',
-      date: new Date(2025, 9, 13),
-      title: 'Entrega de proyecto',
-      description: 'Programación web',
-    },
-    {
-      id: '3',
-      date: new Date(2025, 9, 14),
-      title: 'Reunión de equipo',
-      description: 'Proyecto final',
-    },
-    {
-      id: '4',
-      date: new Date(2025, 9, 15),
-      title: 'Presentación',
-      description: 'Diseño de interfaces',
-    },
-  ]);
 
   const [activityType, setActivityType] = React.useState<'free' | 'subject'>('free');
   const [selectedSubject, setSelectedSubject] = React.useState<string>('');
@@ -192,7 +232,8 @@ export default function ActivitiesScreen() {
     if (!newActivity.title) return;
 
     let activityDate: Date;
-    let activityTime: string | undefined = undefined;
+    let activityTime: Date;
+    let subjectId: string | undefined = undefined;
 
     if (activityType === 'free') {
       if (!freeActivityDay || !freeActivityMonth || !freeActivityYear) return;
@@ -201,6 +242,9 @@ export default function ActivitiesScreen() {
         parseInt(freeActivityMonth),
         parseInt(freeActivityDay)
       );
+      // Set time to start of day for free activities
+      activityTime = new Date(activityDate);
+      activityTime.setHours(0, 0, 0, 0);
     } else {
       if (!selectedDate || !selectedSubject || selectedDay === null) return;
 
@@ -211,19 +255,28 @@ export default function ActivitiesScreen() {
       if (!scheduleForDay) return;
 
       activityDate = selectedDate;
-      activityTime = scheduleForDay.startTime;
+      // Parse time string (HH:MM) to Date
+      const [hours, minutes] = scheduleForDay.startTime.split(':').map(Number);
+      activityTime = new Date(activityDate);
+      activityTime.setHours(hours, minutes, 0, 0);
+      subjectId = selectedSubject;
     }
 
-    const activity: Activity = {
-      id: Date.now().toString(),
-      date: activityDate,
-      title: newActivity.title,
-      description: newActivity.description,
-      time: activityTime,
-      subjectId: activityType === 'subject' ? selectedSubject : undefined,
-    };
+    const actividadData = prepareActividadForCreation(
+      activityDate,
+      activityTime,
+      newActivity.title,
+      newActivity.description,
+      subjectId
+    );
 
-    setActivities([...activities, activity]);
+    actividadesViewModel.createActividad(
+      actividadData.dia,
+      actividadData.hora,
+      actividadData.titulo,
+      actividadData.descripcion
+    );
+
     setNewActivity({ title: '', description: '' });
     setActivityType('free');
     setSelectedSubject('');
@@ -235,7 +288,7 @@ export default function ActivitiesScreen() {
   };
 
   const handleDeleteActivity = (id: string) => {
-    setActivities(activities.filter(activity => activity.id !== id));
+    actividadesViewModel.deleteActividad(id);
   };
 
   const selectedDayActivities = activities.filter(activity => isSameDay(activity.date, selectedDate));
@@ -673,4 +726,6 @@ export default function ActivitiesScreen() {
       </ScrollView>
     </Container>
   );
-}
+});
+
+export default ActivitiesScreen;

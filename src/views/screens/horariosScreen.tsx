@@ -2,7 +2,10 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import styled from 'styled-components/native';
 import { Text, Menu, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
+import { observer } from 'mobx-react-lite';
+import { useViewModelContext } from '../../context/ViewModelContext';
 import { SubjectCard } from '../components/SubjectCard';
+import { ClaseType } from '../../types/types';
 
 interface ScheduleDay {
   day: string;
@@ -93,8 +96,8 @@ const ColorButton = styled.TouchableOpacity<{ color: string; selected: boolean }
   background-color: ${({ color }) => color};
   align-items: center;
   justify-content: center;
-  borderWidth: ${({ selected }) => (selected ? 3 : 0)};
-  borderColor: #fff;
+  border-width: ${({ selected }) => (selected ? 3 : 0)}px;
+  border-color: #fff;
   margin-right: 12px;
   margin-bottom: 12px;
 `;
@@ -109,16 +112,41 @@ const ScheduleChip = styled.View`
   align-items: center;
 `;
 
-export default function HorariosScreen() {
-  // Mock data - using local state
-  const [schedules, setSchedules] = React.useState<Schedule[]>([
-    {
-      id: '1',
-      name: 'Horario Principal',
-      subjects: [],
-    },
-  ]);
-  const [activeScheduleId, setActiveScheduleId] = React.useState('1');
+// Helper functions to convert between UI format and database format
+const timeStringToDate = (timeString: string): Date => {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+};
+
+const dateToTimeString = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+const claseToScheduleDay = (clase: ClaseType): ScheduleDay => {
+  return {
+    day: clase.dia,
+    startTime: dateToTimeString(clase.horaEntrada),
+    endTime: dateToTimeString(clase.horaSalida),
+  };
+};
+
+const scheduleDayToClase = (scheduleDay: ScheduleDay): ClaseType => {
+  // Import BSON only when needed (inside the function that uses it)
+  const { BSON } = require('realm');
+  return {
+    _id: new BSON.ObjectId(),
+    dia: scheduleDay.day,
+    horaEntrada: timeStringToDate(scheduleDay.startTime),
+    horaSalida: timeStringToDate(scheduleDay.endTime),
+  };
+};
+
+const HorariosScreen = observer(() => {
+  const { horarioViewModel, materiasViewModel, clasesViewModel } = useViewModelContext();
   
   const [isSubjectDialogOpen, setIsSubjectDialogOpen] = React.useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = React.useState(false);
@@ -141,51 +169,98 @@ export default function HorariosScreen() {
   const [startTimePickerVisible, setStartTimePickerVisible] = React.useState(false);
   const [endTimePickerVisible, setEndTimePickerVisible] = React.useState(false);
 
+  // Load horarios on mount
+  React.useEffect(() => {
+    horarioViewModel.loadHorarios();
+  }, []);
+
+  // Load materias when active horario changes
+  React.useEffect(() => {
+    if (horarioViewModel.activeHorarioId) {
+      materiasViewModel.loadMaterias(horarioViewModel.activeHorarioId.toString());
+    }
+  }, [horarioViewModel.activeHorarioId]);
+
+  // Convert horarios to UI format
+  const schedules: Schedule[] = horarioViewModel.horarios.map(horario => ({
+    id: horario._id.toString(),
+    name: horario.nombre,
+    subjects: [],
+  }));
+
+  // Get active schedule
+  const activeScheduleId = horarioViewModel.activeHorarioId?.toString() || '';
   const activeSchedule = schedules.find(s => s.id === activeScheduleId);
-  const subjects = activeSchedule?.subjects || [];
+
+  // Convert materias to subjects format
+  const subjects: Subject[] = materiasViewModel.materias.map(materia => ({
+    id: materia._id.toString(),
+    title: materia.nombre,
+    schedules: materia.clases.map(claseToScheduleDay),
+    color: materia.colorHex,
+  }));
 
   const handleAddSchedule = (name: string) => {
-    const newSchedule: Schedule = {
-      id: Date.now().toString(),
-      name: name,
-      subjects: [],
-    };
-    setSchedules([...schedules, newSchedule]);
-    setActiveScheduleId(newSchedule.id);
+    horarioViewModel.createHorario(name);
+    // After creating, the new horario will be loaded and set as active if it's the first one
+    // If there are existing horarios, we need to set the newly created one as active
+    // The ViewModel will reload horarios, so we need to find the new one and set it as active
+    setTimeout(() => {
+      const newHorario = horarioViewModel.horarios.find(h => h.nombre === name);
+      if (newHorario) {
+        horarioViewModel.setActiveHorario(newHorario._id.toString());
+      }
+    }, 100);
   };
 
   const handleAddSubject = (subject: Subject) => {
-    setSchedules(schedules.map(schedule => 
-      schedule.id === activeScheduleId
-        ? { ...schedule, subjects: [...schedule.subjects, subject] }
-        : schedule
-    ));
+    if (!horarioViewModel.activeHorarioId) return;
+    
+    // Create materia first
+    materiasViewModel.createMateria(
+      subject.title,
+      subject.color,
+      horarioViewModel.activeHorarioId.toString()
+    );
+    
+    // After creating materia, push clases
+    // We need to wait for the materia to be created to get its ID
+    setTimeout(() => {
+      const newMateria = materiasViewModel.materias.find(m => m.nombre === subject.title);
+      if (newMateria) {
+        const clases: ClaseType[] = subject.schedules.map(scheduleDay => 
+          scheduleDayToClase(scheduleDay)
+        );
+        materiasViewModel.pushClases(newMateria._id.toString(), clases);
+      }
+    }, 100);
   };
 
   const handleUpdateSubject = (id: string, updatedSubject: { title: string; schedules: ScheduleDay[]; color: string }) => {
-    setSchedules(schedules.map(schedule => 
-      schedule.id === activeScheduleId
-        ? {
-            ...schedule,
-            subjects: schedule.subjects.map(subject =>
-              subject.id === id
-                ? { ...subject, ...updatedSubject }
-                : subject
-            ),
-          }
-        : schedule
-    ));
+    // Update materia
+    materiasViewModel.updateMateria(id, updatedSubject.title, updatedSubject.color);
+    
+    // Get the materia to update its clases
+    const materia = materiasViewModel.materias.find(m => m._id.toString() === id);
+    if (!materia) return;
+    
+    // Delete existing clases first
+    const existingClases = [...materia.clases];
+    existingClases.forEach(clase => {
+      clasesViewModel.deleteClase(clase._id.toString());
+    });
+    
+    // Then create new clases using pushClases
+    setTimeout(() => {
+      const newClases: ClaseType[] = updatedSubject.schedules.map(scheduleDay => 
+        scheduleDayToClase(scheduleDay)
+      );
+      materiasViewModel.pushClases(id, newClases);
+    }, 100);
   };
 
   const handleDeleteSubject = (id: string) => {
-    setSchedules(schedules.map(schedule => 
-      schedule.id === activeScheduleId
-        ? {
-            ...schedule,
-            subjects: schedule.subjects.filter(subject => subject.id !== id),
-          }
-        : schedule
-    ));
+    materiasViewModel.deleteMateria(id);
   };
 
   const handleAddScheduleToSubject = () => {
@@ -253,7 +328,7 @@ export default function HorariosScreen() {
               <Menu.Item
                 key={schedule.id}
                 onPress={() => {
-                  setActiveScheduleId(schedule.id);
+                  horarioViewModel.setActiveHorario(schedule.id);
                   setSchedulePickerVisible(false);
                 }}
                 title={schedule.name}
@@ -541,4 +616,6 @@ export default function HorariosScreen() {
       </ScrollView>
     </Container>
   );
-}
+});
+
+export default HorariosScreen;

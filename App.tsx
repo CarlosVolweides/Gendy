@@ -4,6 +4,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { useColorScheme } from 'react-native';
 import AppNavigator from './src/views/navigation/appNavigator';
 import { lightTheme, darkTheme } from './src/views/styles/theme';
+import { ViewModelProvider } from './src/context/ViewModelContext';
 
 export default function App() {
   const scheme = useColorScheme(); // detecta dark o light del sistema
@@ -12,7 +13,9 @@ export default function App() {
   return (
     <PaperProvider theme={theme}>
       <ThemeProvider theme={theme}>
-        <AppNavigator />
+        <ViewModelProvider>
+          <AppNavigator />
+        </ViewModelProvider>
       </ThemeProvider>
     </PaperProvider>
   );

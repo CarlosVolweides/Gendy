@@ -2,8 +2,11 @@ import React from 'react';
 import { View, ScrollView } from 'react-native';
 import styled from 'styled-components/native';
 import { Text, IconButton } from 'react-native-paper';
+import { observer } from 'mobx-react-lite';
 import { ScheduleGrid } from '../components/ScheduleGrid';
 import { ActivityCard } from '../components/ActivityCard';
+import { useViewModelContext } from '../../context/ViewModelContext';
+import { convertMateriaToSubject, convertActividadToActivity } from '../../utils/typeConverters';
 
 interface ScheduleDay {
   day: string;
@@ -56,70 +59,33 @@ const WeekText = styled(Text)`
 
 const ActivitiesContainer = styled.View``;
 
-export default function HomeScreen() {
-  // Mock data - subjects del horario activo
-  const [subjects] = React.useState<Subject[]>([
-    {
-      id: '1',
-      title: 'Desarrollo de software II',
-      schedules: [
-        { day: 'Lunes', startTime: '08:00', endTime: '09:30' },
-        { day: 'Miércoles', startTime: '08:00', endTime: '09:30' },
-      ],
-      color: '#EC4899',
-    },
-    {
-      id: '2',
-      title: 'Simulación de sistemas',
-      schedules: [
-        { day: 'Martes', startTime: '08:00', endTime: '09:30' },
-        { day: 'Jueves', startTime: '08:00', endTime: '09:30' },
-      ],
-      color: '#FACC15',
-    },
-    {
-      id: '3',
-      title: 'Inteligencia Artificial',
-      schedules: [
-        { day: 'Lunes', startTime: '10:15', endTime: '11:45' },
-        { day: 'Miércoles', startTime: '10:15', endTime: '11:45' },
-      ],
-      color: '#06B6D4',
-    },
-    {
-      id: '4',
-      title: 'Arquitectura del computador',
-      schedules: [
-        { day: 'Martes', startTime: '14:00', endTime: '16:15' },
-        { day: 'Jueves', startTime: '14:00', endTime: '16:15' },
-      ],
-      color: '#9333EA',
-    },
-  ]);
+const HomeScreen = observer(() => {
+  const { materiasViewModel, horarioViewModel, actividadesViewModel } = useViewModelContext();
 
-  // Mock activities
-  const [activities] = React.useState<Activity[]>([
-    {
-      date: 'Lunes 13',
-      title: 'Examen práctico',
-      description: 'Simulación de sistemas',
-    },
-    {
-      date: 'Lunes 13',
-      title: 'Entrega de proyecto',
-      description: 'Programación web',
-    },
-    {
-      date: 'Martes 14',
-      title: 'Reunión de equipo',
-      description: 'Proyecto final',
-    },
-    {
-      date: 'Miércoles 15',
-      title: 'Presentación',
-      description: 'Diseño de interfaces',
-    },
-  ]);
+  // Cargar horarios y materias al montar el componente
+  React.useEffect(() => {
+    horarioViewModel.loadHorarios();
+  }, []);
+
+  React.useEffect(() => {
+    if (horarioViewModel.activeHorarioId) {
+      materiasViewModel.loadMaterias(horarioViewModel.activeHorarioId.toString());
+    }
+  }, [horarioViewModel.activeHorarioId]);
+
+  React.useEffect(() => {
+    actividadesViewModel.loadActividades();
+  }, []);
+
+  // Convertir materias del horario activo a formato Subject
+  const subjects: Subject[] = React.useMemo(() => {
+    if (!horarioViewModel.activeHorarioId) {
+      return [];
+    }
+    return materiasViewModel.materias
+      .filter(materia => materia.horario._id.toString() === horarioViewModel.activeHorarioId?.toString())
+      .map(convertMateriaToSubject);
+  }, [materiasViewModel.materias, horarioViewModel.activeHorarioId]);
 
   // Estado para navegación de semanas
   const [currentWeekStart, setCurrentWeekStart] = React.useState<Date>(() => {
@@ -128,6 +94,19 @@ export default function HomeScreen() {
     const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Ajustar para que la semana empiece el lunes
     return new Date(today.setDate(diff));
   });
+
+  // Obtener actividades de la semana actual
+  const activities: Activity[] = React.useMemo(() => {
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const weekStart = new Date(currentWeekStart);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const actividadesSemana = actividadesViewModel.getActividadesByDateRange(weekStart, weekEnd);
+    return actividadesSemana.map(convertActividadToActivity);
+  }, [currentWeekStart, actividadesViewModel.actividades]);
 
   const formatWeekRange = (startDate: Date): string => {
     const endDate = new Date(startDate);
@@ -203,4 +182,6 @@ export default function HomeScreen() {
       </ScrollView>
     </Container>
   );
-}
+});
+
+export default HomeScreen;

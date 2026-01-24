@@ -1,6 +1,7 @@
 import { BSON } from 'realm';
 import { openRealm } from '../database/realm';
 type ObjectId = BSON.ObjectId;
+import { ClaseType } from '../types/types';
 
 export class ClasesRepository {
     private realm = openRealm()
@@ -55,6 +56,16 @@ export class ClasesRepository {
         } catch (error: any) {
             console.error('Error al eliminar clase:', error);
             return { success: false, error: error.message };
+        }
+    }
+
+    getClases(materiaId: ObjectId): ClaseType[] {
+        try {
+            const clases = this.realm.objects('Clase').filtered('materia._id == $0', materiaId) as unknown as ClaseType[]
+            return Array.from(clases)
+        } catch (error: any) {
+            console.error('Error al obtener clases:', error);
+            return []
         }
     }
 }
