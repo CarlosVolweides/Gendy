@@ -35,7 +35,7 @@ function BottomTabs() {
       <Tab.Screen
         name="Horarios"
         component={HorariosScreen}
-        options={{ tabBarIcon: ({ color }) => <IconButton icon="clock-outline" iconColor={color} /> }}
+        options={{ tabBarIcon: ({ color }) => <IconButton icon="format-list-bulleted" iconColor={color} /> }}
       />
       <Tab.Screen
         name="Home"
@@ -43,9 +43,9 @@ function BottomTabs() {
         options={{ tabBarIcon: ({ color }) => <IconButton icon="home" iconColor={color} /> }}
       />
       <Tab.Screen
-        name="Actividades"
+        name="Calendario"
         component={ActivitiesScreen}
-        options={{ tabBarIcon: ({ color }) => <IconButton icon="check-circle-outline" iconColor={color} /> }}
+        options={{ tabBarIcon: ({ color }) => <IconButton icon="calendar" iconColor={color} /> }}
       />
     </Tab.Navigator>
   );
