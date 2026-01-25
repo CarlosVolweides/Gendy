@@ -167,11 +167,44 @@ const HorariosScreen = observer(() => {
     endTime: '',
   });
 
-  const [menuVisible, setMenuVisible] = React.useState(false);
-  const [schedulePickerVisible, setSchedulePickerVisible] = React.useState(false);
-  const [dayPickerVisible, setDayPickerVisible] = React.useState(false);
-  const [startTimePickerVisible, setStartTimePickerVisible] = React.useState(false);
-  const [endTimePickerVisible, setEndTimePickerVisible] = React.useState(false);
+  // Use a single state to track which menu is open
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+  const menuKeyRef = React.useRef(0);
+
+  // Helper to close all menus
+  const closeAllMenus = React.useCallback(() => {
+    setOpenMenuId(null);
+  }, []);
+
+  // Helper to open a specific menu
+  const openMenu = React.useCallback((menuId: string) => {
+    // If clicking the same menu that's already open, close it (toggle)
+    if (openMenuId === menuId) {
+      setOpenMenuId(null);
+      return;
+    }
+    
+    // If another menu is open, close it first, then open the new one
+    if (openMenuId !== null) {
+      setOpenMenuId(null);
+      menuKeyRef.current += 1;
+      // Small delay to ensure the close completes
+      setTimeout(() => {
+        setOpenMenuId(menuId);
+      }, 50);
+    } else {
+      // No menu is open, just open the new one
+      menuKeyRef.current += 1;
+      setOpenMenuId(menuId);
+    }
+  }, [openMenuId]);
+
+  // Derived states for each menu
+  const schedulePickerVisible = openMenuId === 'schedule';
+  const dayPickerVisible = openMenuId === 'day';
+  const startTimePickerVisible = openMenuId === 'startTime';
+  const endTimePickerVisible = openMenuId === 'endTime';
+  const menuVisible = openMenuId === 'menu';
 
   // Load horarios on mount
   React.useEffect(() => {
@@ -385,12 +418,13 @@ const HorariosScreen = observer(() => {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ flex: 1 }}>
               <Menu
+                key={`schedule-${menuKeyRef.current}`}
                 visible={schedulePickerVisible}
-                onDismiss={() => setSchedulePickerVisible(false)}
+                onDismiss={closeAllMenus}
                 anchor={
                   <Button
                     mode="outlined"
-                    onPress={() => setSchedulePickerVisible(true)}
+                    onPress={() => openMenu('schedule')}
                     style={{ flex: 1, backgroundColor: '#fff' }}
                   >
                     {activeSchedule?.name || 'Seleccionar horario'}
@@ -402,7 +436,7 @@ const HorariosScreen = observer(() => {
                     key={schedule.id}
                     onPress={() => {
                       horarioViewModel.setActiveHorario(schedule.id);
-                      setSchedulePickerVisible(false);
+                      closeAllMenus();
                     }}
                     title={schedule.name}
                   />
@@ -440,21 +474,22 @@ const HorariosScreen = observer(() => {
           </Text>
           
           <Menu
+            key={`menu-${menuKeyRef.current}`}
             visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
+            onDismiss={closeAllMenus}
             anchor={
               <IconButton
                 icon="plus"
                 iconColor="#fff"
                 size={24}
-                onPress={() => setMenuVisible(true)}
+                onPress={() => openMenu('menu')}
                 style={{ backgroundColor: '#06B6D4' }}
               />
             }
           >
             <Menu.Item
               onPress={() => {
-                setMenuVisible(false);
+                closeAllMenus();
                 setIsScheduleDialogOpen(true);
               }}
               title="Nuevo horario"
@@ -462,7 +497,7 @@ const HorariosScreen = observer(() => {
             />
             <Menu.Item
               onPress={() => {
-                setMenuVisible(false);
+                closeAllMenus();
                 setIsSubjectDialogOpen(true);
               }}
               title="Nueva materia"
@@ -612,12 +647,13 @@ const HorariosScreen = observer(() => {
               ))}
 
               <Menu
+                key={`day-${menuKeyRef.current}`}
                 visible={dayPickerVisible}
-                onDismiss={() => setDayPickerVisible(false)}
+                onDismiss={closeAllMenus}
                 anchor={
                   <Button
                     mode="outlined"
-                    onPress={() => setDayPickerVisible(true)}
+                    onPress={() => openMenu('day')}
                     style={{ marginBottom: 8 }}
                   >
                     {currentSchedule.day || 'Selecciona un día'}
@@ -629,7 +665,7 @@ const HorariosScreen = observer(() => {
                     key={day}
                     onPress={() => {
                       setCurrentSchedule({ ...currentSchedule, day });
-                      setDayPickerVisible(false);
+                      closeAllMenus();
                     }}
                     title={day}
                   />
@@ -638,12 +674,13 @@ const HorariosScreen = observer(() => {
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Menu
+                  key={`startTime-${menuKeyRef.current}`}
                   visible={startTimePickerVisible}
-                  onDismiss={() => setStartTimePickerVisible(false)}
+                  onDismiss={closeAllMenus}
                   anchor={
                     <Button
                       mode="outlined"
-                      onPress={() => setStartTimePickerVisible(true)}
+                      onPress={() => openMenu('startTime')}
                       style={{ flex: 1 }}
                     >
                       {currentSchedule.startTime ? formatTime(currentSchedule.startTime) : 'Inicio'}
@@ -655,7 +692,7 @@ const HorariosScreen = observer(() => {
                       key={time}
                       onPress={() => {
                         setCurrentSchedule({ ...currentSchedule, startTime: time });
-                        setStartTimePickerVisible(false);
+                        closeAllMenus();
                       }}
                       title={formatTime(time)}
                     />
@@ -665,12 +702,13 @@ const HorariosScreen = observer(() => {
                 <Text>a</Text>
 
                 <Menu
+                  key={`endTime-${menuKeyRef.current}`}
                   visible={endTimePickerVisible}
-                  onDismiss={() => setEndTimePickerVisible(false)}
+                  onDismiss={closeAllMenus}
                   anchor={
                     <Button
                       mode="outlined"
-                      onPress={() => setEndTimePickerVisible(true)}
+                      onPress={() => openMenu('endTime')}
                       style={{ flex: 1 }}
                       disabled={!currentSchedule.startTime}
                     >
@@ -686,7 +724,7 @@ const HorariosScreen = observer(() => {
                       key={time}
                       onPress={() => {
                         setCurrentSchedule({ ...currentSchedule, endTime: time });
-                        setEndTimePickerVisible(false);
+                        closeAllMenus();
                       }}
                       title={formatTime(time)}
                     />

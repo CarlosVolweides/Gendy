@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import React from 'react';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components/native';
 import { Provider as PaperProvider } from 'react-native-paper';

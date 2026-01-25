@@ -117,7 +117,6 @@ const ScheduleChip = styled.View`
 `;
 
 export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }: SubjectCardProps) {
-  const [menuVisible, setMenuVisible] = React.useState(false);
   const [editModalVisible, setEditModalVisible] = React.useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
   const [editedSubject, setEditedSubject] = React.useState({
@@ -132,9 +131,43 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
     endTime: '',
   });
 
-  const [dayPickerVisible, setDayPickerVisible] = React.useState(false);
-  const [startTimePickerVisible, setStartTimePickerVisible] = React.useState(false);
-  const [endTimePickerVisible, setEndTimePickerVisible] = React.useState(false);
+  // Use a single state to track which menu is open
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+  const menuKeyRef = React.useRef(0);
+
+  // Helper to close all menus
+  const closeAllMenus = React.useCallback(() => {
+    setOpenMenuId(null);
+  }, []);
+
+  // Helper to open a specific menu
+  const openMenu = React.useCallback((menuId: string) => {
+    // If clicking the same menu that's already open, close it (toggle)
+    if (openMenuId === menuId) {
+      setOpenMenuId(null);
+      return;
+    }
+    
+    // If another menu is open, close it first, then open the new one
+    if (openMenuId !== null) {
+      setOpenMenuId(null);
+      menuKeyRef.current += 1;
+      // Small delay to ensure the close completes
+      setTimeout(() => {
+        setOpenMenuId(menuId);
+      }, 50);
+    } else {
+      // No menu is open, just open the new one
+      menuKeyRef.current += 1;
+      setOpenMenuId(menuId);
+    }
+  }, [openMenuId]);
+
+  // Derived states for each menu
+  const dayPickerVisible = openMenuId === 'day';
+  const startTimePickerVisible = openMenuId === 'startTime';
+  const endTimePickerVisible = openMenuId === 'endTime';
+  const menuVisible = openMenuId === 'menu';
 
   React.useEffect(() => {
     setEditedSubject({
@@ -169,7 +202,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
   };
 
   const handleDelete = () => {
-    setMenuVisible(false);
+    closeAllMenus();
     setDeleteModalVisible(true);
   };
 
@@ -181,7 +214,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
   };
 
   const handleOpenEdit = () => {
-    setMenuVisible(false);
+    closeAllMenus();
     setEditModalVisible(true);
   };
 
@@ -210,14 +243,15 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
             {title}
           </Text>
           <Menu
+            key={`menu-${menuKeyRef.current}`}
             visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
+            onDismiss={closeAllMenus}
             anchor={
               <IconButton
                 icon="dots-vertical"
                 iconColor="#fff"
                 size={20}
-                onPress={() => setMenuVisible(true)}
+                onPress={() => openMenu('menu')}
               />
             }
           >
@@ -286,12 +320,13 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
             ))}
 
             <Menu
+              key={`day-${menuKeyRef.current}`}
               visible={dayPickerVisible}
-              onDismiss={() => setDayPickerVisible(false)}
+              onDismiss={closeAllMenus}
               anchor={
                 <Button
                   mode="outlined"
-                  onPress={() => setDayPickerVisible(true)}
+                  onPress={() => openMenu('day')}
                   style={{ marginBottom: 8 }}
                 >
                   {currentSchedule.day || 'Selecciona un día'}
@@ -303,7 +338,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                   key={day}
                   onPress={() => {
                     setCurrentSchedule({ ...currentSchedule, day });
-                    setDayPickerVisible(false);
+                    closeAllMenus();
                   }}
                   title={day}
                 />
@@ -312,12 +347,13 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <Menu
+                key={`startTime-${menuKeyRef.current}`}
                 visible={startTimePickerVisible}
-                onDismiss={() => setStartTimePickerVisible(false)}
+                onDismiss={closeAllMenus}
                 anchor={
                   <Button
                     mode="outlined"
-                    onPress={() => setStartTimePickerVisible(true)}
+                    onPress={() => openMenu('startTime')}
                     style={{ flex: 1 }}
                   >
                     {currentSchedule.startTime ? formatTime(currentSchedule.startTime) : 'Inicio'}
@@ -329,7 +365,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                     key={time}
                     onPress={() => {
                       setCurrentSchedule({ ...currentSchedule, startTime: time });
-                      setStartTimePickerVisible(false);
+                      closeAllMenus();
                     }}
                     title={formatTime(time)}
                   />
@@ -339,12 +375,13 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
               <Text>a</Text>
 
               <Menu
+                key={`endTime-${menuKeyRef.current}`}
                 visible={endTimePickerVisible}
-                onDismiss={() => setEndTimePickerVisible(false)}
+                onDismiss={closeAllMenus}
                 anchor={
                   <Button
                     mode="outlined"
-                    onPress={() => setEndTimePickerVisible(true)}
+                    onPress={() => openMenu('endTime')}
                     style={{ flex: 1 }}
                     disabled={!currentSchedule.startTime}
                   >
@@ -360,7 +397,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                     key={time}
                     onPress={() => {
                       setCurrentSchedule({ ...currentSchedule, endTime: time });
-                      setEndTimePickerVisible(false);
+                      closeAllMenus();
                     }}
                     title={formatTime(time)}
                   />
