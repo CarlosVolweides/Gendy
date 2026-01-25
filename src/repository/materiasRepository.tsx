@@ -81,9 +81,20 @@ export class MateriasRepository {
         try {
             const materia = this.realm.objectForPrimaryKey('Materia', id)
             if (!materia) return { success: false, error: 'Materia no encontrada' }
+            
+            // Obtener los IDs de las clases antes de eliminarlas
+            const clasesIds = Array.from(materia.clases).map(clase => clase._id);
+            
             this.realm.write(() => {
-                this.realm.delete(materia.clases)
-                this.realm.delete(materia)
+                // Eliminar cada clase individualmente
+                clasesIds.forEach(claseId => {
+                    const clase = this.realm.objectForPrimaryKey('Clase', claseId);
+                    if (clase) {
+                        this.realm.delete(clase);
+                    }
+                });
+                // Eliminar la materia
+                this.realm.delete(materia);
             })
             return { success: true };
         } catch (error: any) {

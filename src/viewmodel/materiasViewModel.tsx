@@ -67,9 +67,15 @@ export class MateriasViewModel {
     const objectId = new BSON.ObjectId(id);
     const result = this.repo.deleteMateria(objectId);
     if (result.success) {
-      // Remover la materia de la lista local
-      this.materias = this.materias.filter(m => m._id.toString() !== id);
       this.error = null;
+      // Recargar materias para evitar acceder a objetos invalidados de Realm
+      // Los objetos de Realm se invalidan cuando se eliminan, así que recargamos desde la BD
+      if (this.horarioId) {
+        this.loadMaterias(this.horarioId.toString());
+      } else {
+        // Si no hay horarioId, limpiar la lista ya que no podemos acceder a objetos invalidados
+        this.materias = [];
+      }
     } else {
       this.error = result.error ?? 'Error al eliminar materia';
     }
