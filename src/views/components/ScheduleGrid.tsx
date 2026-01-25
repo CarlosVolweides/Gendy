@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/native';
 import { Text } from 'react-native-paper';
-import { ScrollView } from 'react-native';
 
 interface ScheduleBlock {
   day: number;
@@ -50,13 +49,13 @@ function calculateDuration(startTime: string, endTime: string): number {
   return Math.ceil(totalMinutes / 45); // Redondear hacia arriba para cubrir el tiempo completo
 }
 
-const Container = styled(ScrollView)`
+const Container = styled.View`
   width: 100%;
   padding-bottom: 8px;
 `;
 
 const ContentWrapper = styled.View`
-  min-width: 100%;
+  width: 100%;
 `;
 
 const HeaderRow = styled.View`
@@ -65,19 +64,18 @@ const HeaderRow = styled.View`
 `;
 
 const TimeColumn = styled.View`
-  width: 64px;
+  width: 50px;
   flex-shrink: 0;
 `;
 
 const DayHeader = styled.View`
-  width: 80px;
-  flex-shrink: 0;
+  flex: 1;
   align-items: center;
-  margin-horizontal: 4px;
+  margin-horizontal: 2px;
 `;
 
 const DayHeaderText = styled(Text)`
-  font-size: 12px;
+  font-size: 11px;
   color: ${({ theme }: { theme: any }) => theme?.colors?.onSurface || theme?.colors?.text || '#71717a'};
   opacity: 0.6;
 `;
@@ -96,13 +94,13 @@ const HourRow = styled.View`
 `;
 
 const TimeLabel = styled(Text)`
-  width: 64px;
+  width: 50px;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 11px;
   color: ${({ theme }: { theme: any }) => theme?.colors?.onSurface || theme?.colors?.text || '#71717a'};
   opacity: 0.6;
   text-align: right;
-  padding-right: 8px;
+  padding-right: 6px;
 `;
 
 const DaysRow = styled.View`
@@ -112,10 +110,9 @@ const DaysRow = styled.View`
 `;
 
 const DayCell = styled.View`
-  width: 80px;
+  flex: 1;
   height: 32px;
-  margin-horizontal: 4px;
-  flex-shrink: 0;
+  margin-horizontal: 2px;
   position: relative;
 `;
 
@@ -178,7 +175,7 @@ export function ScheduleGrid({ subjects }: ScheduleGridProps) {
   ];
 
   return (
-    <Container horizontal showsHorizontalScrollIndicator={false}>
+    <Container>
       <ContentWrapper>
         {/* Header con días */}
         <HeaderRow>
