@@ -3,32 +3,40 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { IconButton } from 'react-native-paper';
+import { View } from 'react-native';
 
 import HomeScreen from '../screens/homeScreen';
 import HorariosScreen from '../screens/horariosScreen';
 import ActivitiesScreen from '../screens/activitiesScreen';
 import SettingsScreen from '../screens/settingsScreen';
-
-import { colors } from '../styles/global';
+import { useTheme } from '../../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function BottomTabs() {
   const navigation = useNavigation<any>();
+  const { theme, themeMode, toggleTheme } = useTheme();
 
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
-        tabBarStyle: { backgroundColor: '#F9FAFB' },
-        tabBarActiveTintColor: colors.primary,
+        headerStyle: { backgroundColor: theme.colors.background },
+        tabBarStyle: { backgroundColor: theme.colors.surface },
+        tabBarActiveTintColor: theme.colors.primary,
         headerRight: () => (
-          <IconButton
-            icon="cog"
-            iconColor={colors.text}
-            onPress={() => navigation.navigate('Settings')}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <IconButton
+              icon={themeMode === 'light' ? 'weather-night' : 'weather-sunny'}
+              iconColor={theme.colors.text}
+              onPress={toggleTheme}
+            />
+            <IconButton
+              icon="cog"
+              iconColor={theme.colors.text}
+              onPress={() => navigation.navigate('Settings')}
+            />
+          </View>
         ),
       }}
     >

@@ -1,22 +1,28 @@
 import React from 'react';
-import { ThemeProvider } from 'styled-components/native';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components/native';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { useColorScheme } from 'react-native';
 import AppNavigator from './src/views/navigation/appNavigator';
-import { lightTheme, darkTheme } from './src/views/styles/theme';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { ViewModelProvider } from './src/context/ViewModelContext';
 
-export default function App() {
-  const scheme = useColorScheme(); // detecta dark o light del sistema
-  const theme = scheme === 'dark' ? darkTheme : lightTheme;
+function AppContent() {
+  const { theme } = useTheme();
 
   return (
     <PaperProvider theme={theme}>
-      <ThemeProvider theme={theme}>
+      <StyledThemeProvider theme={theme}>
         <ViewModelProvider>
           <AppNavigator />
         </ViewModelProvider>
-      </ThemeProvider>
+      </StyledThemeProvider>
     </PaperProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
