@@ -65,12 +65,32 @@ export function convertMateriaToSubject(materia: MateriaType): Subject {
   };
 }
 
-export function convertActividadToActivity(actividad: ActividadType): Activity {
+export function convertActividadToActivity(actividad: ActividadType, materias?: MateriaType[]): Activity {
   const date = formatDate(new Date(actividad.dia));
+  
+  // Extract subjectId from descripcion if it exists
+  let description = actividad.descripcion;
+  let subjectId: string | undefined = undefined;
+  
+  if (description.includes('|subjectId:')) {
+    const parts = description.split('|subjectId:');
+    description = parts[0];
+    subjectId = parts[1];
+  }
+  
+  // If there's a subjectId and materias are provided, find the materia name
+  if (subjectId && materias) {
+    const materia = materias.find(m => m._id.toString() === subjectId);
+    if (materia) {
+      // Append materia name to description
+      description = description ? `${description} - ${materia.nombre}` : materia.nombre;
+    }
+  }
+  
   return {
     date,
     title: actividad.titulo,
-    description: actividad.descripcion,
+    description,
   };
 }
 

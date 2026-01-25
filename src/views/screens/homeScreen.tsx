@@ -105,8 +105,9 @@ const HomeScreen = observer(() => {
     weekStart.setHours(0, 0, 0, 0);
 
     const actividadesSemana = actividadesViewModel.getActividadesByDateRange(weekStart, weekEnd);
-    return actividadesSemana.map(convertActividadToActivity);
-  }, [currentWeekStart, actividadesViewModel.actividades]);
+    // Pass materias to convertActividadToActivity so it can resolve subjectId to materia name
+    return actividadesSemana.map(actividad => convertActividadToActivity(actividad, materiasViewModel.materias));
+  }, [currentWeekStart, actividadesViewModel.actividades, materiasViewModel.materias]);
 
   const formatWeekRange = (startDate: Date): string => {
     const endDate = new Date(startDate);
