@@ -6,6 +6,7 @@ import { observer } from 'mobx-react-lite';
 import { useViewModelContext } from '../../context/ViewModelContext';
 import { SubjectCard } from '../components/SubjectCard';
 import { ClaseType } from '../../types/types';
+import { Alert } from 'react-native';
 
 interface ScheduleDay {
   day: string;
@@ -148,6 +149,9 @@ const scheduleDayToClase = (scheduleDay: ScheduleDay): ClaseType => {
 const HorariosScreen = observer(() => {
   const { horarioViewModel, materiasViewModel, clasesViewModel } = useViewModelContext();
   
+
+  const [isEditScheduleOpen, setIsEditScheduleOpen] = React.useState(false);
+  const [editingScheduleName, setEditingScheduleName] = React.useState(''); 
   const [isSubjectDialogOpen, setIsSubjectDialogOpen] = React.useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = React.useState(false);
   const [newScheduleName, setNewScheduleName] = React.useState('');
@@ -190,7 +194,8 @@ const HorariosScreen = observer(() => {
 
   // Get active schedule
   const activeScheduleId = horarioViewModel.activeHorarioId?.toString() || '';
-  const activeSchedule = schedules.find(s => s.id === activeScheduleId);
+  // Cambie estop porque daba error cuando se borraba el ultimo horario
+  const activeSchedule = schedules.find(s => s.id === activeScheduleId) || null;
 
   // Convert materias to subjects format
   const subjects: Subject[] = materiasViewModel.materias.map(materia => {
@@ -219,6 +224,36 @@ const HorariosScreen = observer(() => {
       color: materia.colorHex,
     };
   });
+
+
+  const confirmDeleteSchedule = () => {
+    if (!horarioViewModel.activeHorarioId) return;
+    
+    Alert.alert(
+      "Eliminar Horario",
+      "¿Estás seguro de que quieres eliminar este horario?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Eliminar", 
+          style: "destructive", 
+          onPress: () => {
+            horarioViewModel.deleteHorario(horarioViewModel.activeHorarioId!.toString());
+          } 
+        }
+      ]
+    );
+  };
+
+  const handleUpdateScheduleSubmit = () => {
+    if (editingScheduleName.trim() && horarioViewModel.activeHorarioId) {
+      horarioViewModel.updateHorario(
+        horarioViewModel.activeHorarioId.toString(), 
+        editingScheduleName.trim()
+      );
+      setIsEditScheduleOpen(false);
+    }
+  };
 
   const handleAddSchedule = (name: string) => {
     horarioViewModel.createHorario(name);
@@ -347,30 +382,56 @@ const HorariosScreen = observer(() => {
           <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 8 }}>
             Horario activo
           </Text>
-          <Menu
-            visible={schedulePickerVisible}
-            onDismiss={() => setSchedulePickerVisible(false)}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setSchedulePickerVisible(true)}
-                style={{ backgroundColor: '#fff' }}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Menu
+                visible={schedulePickerVisible}
+                onDismiss={() => setSchedulePickerVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setSchedulePickerVisible(true)}
+                    style={{ flex: 1, backgroundColor: '#fff' }}
+                  >
+                    {activeSchedule?.name || 'Seleccionar horario'}
+                  </Button>
+                }
               >
-                {activeSchedule?.name || 'Seleccionar horario'}
-              </Button>
-            }
-          >
-            {schedules.map((schedule) => (
-              <Menu.Item
-                key={schedule.id}
-                onPress={() => {
-                  horarioViewModel.setActiveHorario(schedule.id);
-                  setSchedulePickerVisible(false);
-                }}
-                title={schedule.name}
-              />
-            ))}
-          </Menu>
+                {schedules.map((schedule) => (
+                  <Menu.Item
+                    key={schedule.id}
+                    onPress={() => {
+                      horarioViewModel.setActiveHorario(schedule.id);
+                      setSchedulePickerVisible(false);
+                    }}
+                    title={schedule.name}
+                  />
+                ))}
+              </Menu>
+            </View>
+            {/* El boton de editar */}
+            <IconButton
+              icon="pencil"
+              mode="contained"
+              containerColor="#F3F4F6"
+              iconColor="#4B5563"
+              size={20}
+              onPress={() => {
+                setEditingScheduleName(activeSchedule?.name || '');
+                setIsEditScheduleOpen(true);
+              }}
+            />
+
+            {/* Eliminart */}
+            <IconButton
+              icon="trash-can-outline"
+              mode="contained"
+              containerColor="#FEE2E2"
+              iconColor="#EF4444"
+              size={20}
+              onPress={confirmDeleteSchedule}
+            />
+          </View>
         </View>
 
         <Header>
@@ -457,6 +518,44 @@ const HorariosScreen = observer(() => {
                 style={{ flex: 1, backgroundColor: '#06B6D4' }}
               >
                 Crear horario
+              </Button>
+            </View>
+          </Modal>
+        </Portal>
+
+        {/* Dialog para editar horario existente */}
+        <Portal>
+          <Modal
+            visible={isEditScheduleOpen}
+            onDismiss={() => setIsEditScheduleOpen(false)}
+            contentContainerStyle={{
+              backgroundColor: '#fff',
+              padding: 24,
+              margin: 20,
+              borderRadius: 16,
+            }}
+          >
+            <Text variant="titleLarge" style={{ color: '#2563EB', marginBottom: 16 }}>
+              Editar nombre del horario
+            </Text>
+            <TextInput
+              label="Nombre del horario"
+              value={editingScheduleName}
+              onChangeText={setEditingScheduleName}
+              mode="outlined"
+              style={{ marginBottom: 16, backgroundColor: '#F3F4F6' }}
+            />
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Button mode="outlined" onPress={() => setIsEditScheduleOpen(false)} style={{ flex: 1 }}>
+                Cancelar
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleUpdateScheduleSubmit}
+                disabled={!editingScheduleName.trim()}
+                style={{ flex: 1, backgroundColor: '#06B6D4' }}
+              >
+                Guardar
               </Button>
             </View>
           </Modal>
