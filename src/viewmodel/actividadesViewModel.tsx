@@ -62,9 +62,9 @@ export class ActividadesViewModel {
     const objectId = new BSON.ObjectId(id);
     const result = this.repo.deleteActividad(objectId);
     if (result.success) {
-      // Remover la actividad de la lista local
-      this.actividades = this.actividades.filter(a => a._id.toString() !== id);
       this.error = null;
+      // Recargar actividades para evitar acceder a objetos invalidados de Realm
+      this.loadActividades();
     } else {
       this.error = result.error ?? 'Error al eliminar actividad';
     }
@@ -76,13 +76,18 @@ export class ActividadesViewModel {
 
   getActividadesByDateRange(startDate: Date, endDate: Date): ActividadType[] {
     return this.actividades.filter(actividad => {
-      const actividadDate = new Date(actividad.dia);
-      actividadDate.setHours(0, 0, 0, 0);
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      return actividadDate >= start && actividadDate <= end;
+      try {
+        const actividadDate = new Date(actividad.dia);
+        actividadDate.setHours(0, 0, 0, 0);
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        return actividadDate >= start && actividadDate <= end;
+      } catch (e) {
+        // Skip invalidated objects
+        return false;
+      }
     });
   }
 }
