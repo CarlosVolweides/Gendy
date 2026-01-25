@@ -2,6 +2,24 @@
   "expo": {
     "name": "Gendy",
     "slug": "Gendy",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "icon": "./assets/Gendy_icono.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "icon": "./assets/Gendy_icono.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Gendy_icono.png",
+        "backgroundColor": "#00D4D4"
+      },
+      "package": "com.gendy.app"
+    },
+    "ios": {
+      "icon": "./assets/Gendy_icono.png",
+      "bundleIdentifier": "com.gendy.app"
+    }
   }
 }
