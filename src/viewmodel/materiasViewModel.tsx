@@ -51,13 +51,12 @@ export class MateriasViewModel {
     const objectId = new BSON.ObjectId(id);
     const result = this.repo.updateMateria(objectId, nombre, colorHex);
     if (result.success) {
-      // Actualizar la materia en la lista local
-      const materia = this.materias.find(m => m._id.toString() === id);
-      if (materia) {
-        materia.nombre = nombre;
-        materia.colorHex = colorHex;
-      }
       this.error = null;
+      // Recargar materias para evitar acceder a objetos invalidados de Realm
+      // No intentamos modificar directamente los objetos de Realm porque pueden estar invalidados
+      if (this.horarioId) {
+        this.loadMaterias(this.horarioId.toString());
+      }
     } else {
       this.error = result.error ?? 'Error al actualizar materia';
     }

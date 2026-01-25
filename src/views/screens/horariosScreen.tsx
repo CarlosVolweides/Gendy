@@ -257,17 +257,33 @@ const HorariosScreen = observer(() => {
   };
 
   const handleUpdateSubject = (id: string, updatedSubject: { title: string; schedules: ScheduleDay[]; color: string }) => {
-    // Update materia
-    materiasViewModel.updateMateria(id, updatedSubject.title, updatedSubject.color);
-    
-    // Get the materia to update its clases
+    // Get the materia and extract clase IDs BEFORE updating (to avoid invalidated objects)
     const materia = materiasViewModel.materias.find(m => m._id.toString() === id);
     if (!materia) return;
     
-    // Delete existing clases first
-    const existingClases = [...materia.clases];
-    existingClases.forEach(clase => {
-      clasesViewModel.deleteClase(clase._id.toString());
+    // Extract clase IDs before any modifications - do this safely
+    const existingClaseIds: string[] = [];
+    try {
+      // Safely extract IDs from Realm objects before they get invalidated
+      const clasesArray = Array.from(materia.clases);
+      clasesArray.forEach(clase => {
+        try {
+          existingClaseIds.push(clase._id.toString());
+        } catch (e) {
+          // Skip invalidated objects
+        }
+      });
+    } catch (e) {
+      // If we can't access clases, we'll proceed without deleting
+      console.warn('Could not extract clase IDs:', e);
+    }
+    
+    // Update materia
+    materiasViewModel.updateMateria(id, updatedSubject.title, updatedSubject.color);
+    
+    // Delete existing clases using the IDs we extracted before updating
+    existingClaseIds.forEach(claseId => {
+      clasesViewModel.deleteClase(claseId);
     });
     
     // Then create new clases using pushClases
@@ -276,7 +292,7 @@ const HorariosScreen = observer(() => {
         scheduleDayToClase(scheduleDay)
       );
       materiasViewModel.pushClases(id, newClases);
-    }, 100);
+    }, 200);
   };
 
   const handleDeleteSubject = (id: string) => {
