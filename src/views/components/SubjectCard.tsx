@@ -107,7 +107,7 @@ const ColorButton = styled.TouchableOpacity<{ color: string; selected: boolean }
 `;
 
 const ScheduleChip = styled.View`
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: #2563EB;
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 8px;
@@ -139,10 +139,10 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
   React.useEffect(() => {
     setEditedSubject({
       title: title,
-      schedules: schedules,
+      schedules: schedules || [],
       color: color,
     });
-  }, [title, schedules, color]);
+  }, [title, schedules, color, id]);
 
   const handleAddSchedule = () => {
     if (currentSchedule.day && currentSchedule.startTime && currentSchedule.endTime) {

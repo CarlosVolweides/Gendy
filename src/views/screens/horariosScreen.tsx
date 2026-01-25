@@ -193,12 +193,32 @@ const HorariosScreen = observer(() => {
   const activeSchedule = schedules.find(s => s.id === activeScheduleId);
 
   // Convert materias to subjects format
-  const subjects: Subject[] = materiasViewModel.materias.map(materia => ({
-    id: materia._id.toString(),
-    title: materia.nombre,
-    schedules: materia.clases.map(claseToScheduleDay),
-    color: materia.colorHex,
-  }));
+  const subjects: Subject[] = materiasViewModel.materias.map(materia => {
+    // Safely convert clases to ScheduleDay, handling invalidated Realm objects
+    const schedules: ScheduleDay[] = [];
+    try {
+      // Create a safe copy of the clases array before accessing properties
+      const clasesArray = Array.from(materia.clases);
+      clasesArray.forEach(clase => {
+        try {
+          const scheduleDay = claseToScheduleDay(clase);
+          schedules.push(scheduleDay);
+        } catch (error) {
+          // Skip invalidated objects
+          console.warn('Error converting clase to ScheduleDay:', error);
+        }
+      });
+    } catch (error) {
+      console.warn('Error accessing materia.clases:', error);
+    }
+    
+    return {
+      id: materia._id.toString(),
+      title: materia.nombre,
+      schedules,
+      color: materia.colorHex,
+    };
+  });
 
   const handleAddSchedule = (name: string) => {
     horarioViewModel.createHorario(name);
