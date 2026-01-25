@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
-import { Text, Menu, IconButton, Modal, Portal, TextInput, Button, Icon } from 'react-native-paper';
+import { Text, IconButton, Modal, Portal, TextInput, Button, Icon } from 'react-native-paper';
+import { CustomDropdown } from './CustomDropdown';
 
 interface ScheduleDay {
   day: string;
@@ -242,8 +243,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
           <Text variant="titleMedium" style={{ color: '#fff', fontWeight: 'bold', flex: 1, marginRight: 8 }}>
             {title}
           </Text>
-          <Menu
-            key={`menu-${menuKeyRef.current}`}
+          <CustomDropdown
             visible={menuVisible}
             onDismiss={closeAllMenus}
             anchor={
@@ -254,10 +254,20 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                 onPress={() => openMenu('menu')}
               />
             }
-          >
-            <Menu.Item onPress={handleOpenEdit} title="Editar" leadingIcon="pencil" />
-            <Menu.Item onPress={handleDelete} title="Eliminar" leadingIcon="delete" titleStyle={{ color: '#DC2626' }} />
-          </Menu>
+            items={[
+              {
+                label: 'Editar',
+                value: 'edit',
+                onPress: handleOpenEdit,
+              },
+              {
+                label: 'Eliminar',
+                value: 'delete',
+                onPress: handleDelete,
+                titleStyle: { color: '#DC2626' },
+              },
+            ]}
+          />
         </CardHeader>
         <View>
           {schedules.slice(0, 3).map((schedule, index) => (
@@ -319,8 +329,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
               </ScheduleChip>
             ))}
 
-            <Menu
-              key={`day-${menuKeyRef.current}`}
+            <CustomDropdown
               visible={dayPickerVisible}
               onDismiss={closeAllMenus}
               anchor={
@@ -332,22 +341,17 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                   {currentSchedule.day || 'Selecciona un día'}
                 </Button>
               }
-            >
-              {DAYS_OF_WEEK.map((day) => (
-                <Menu.Item
-                  key={day}
-                  onPress={() => {
-                    setCurrentSchedule({ ...currentSchedule, day });
-                    closeAllMenus();
-                  }}
-                  title={day}
-                />
-              ))}
-            </Menu>
+              items={DAYS_OF_WEEK.map((day) => ({
+                label: day,
+                value: day,
+                onPress: () => {
+                  setCurrentSchedule({ ...currentSchedule, day });
+                },
+              }))}
+            />
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Menu
-                key={`startTime-${menuKeyRef.current}`}
+              <CustomDropdown
                 visible={startTimePickerVisible}
                 onDismiss={closeAllMenus}
                 anchor={
@@ -359,23 +363,18 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                     {currentSchedule.startTime ? formatTime(currentSchedule.startTime) : 'Inicio'}
                   </Button>
                 }
-              >
-                {TIME_SLOTS.map((time) => (
-                  <Menu.Item
-                    key={time}
-                    onPress={() => {
-                      setCurrentSchedule({ ...currentSchedule, startTime: time });
-                      closeAllMenus();
-                    }}
-                    title={formatTime(time)}
-                  />
-                ))}
-              </Menu>
+                items={TIME_SLOTS.map((time) => ({
+                  label: formatTime(time),
+                  value: time,
+                  onPress: () => {
+                    setCurrentSchedule({ ...currentSchedule, startTime: time });
+                  },
+                }))}
+              />
 
               <Text>a</Text>
 
-              <Menu
-                key={`endTime-${menuKeyRef.current}`}
+              <CustomDropdown
                 visible={endTimePickerVisible}
                 onDismiss={closeAllMenus}
                 anchor={
@@ -388,21 +387,17 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
                     {currentSchedule.endTime ? formatTime(currentSchedule.endTime) : 'Fin'}
                   </Button>
                 }
-              >
-                {TIME_SLOTS.filter(time => {
+                items={TIME_SLOTS.filter(time => {
                   if (!currentSchedule.startTime) return true;
                   return time > currentSchedule.startTime;
-                }).map((time) => (
-                  <Menu.Item
-                    key={time}
-                    onPress={() => {
-                      setCurrentSchedule({ ...currentSchedule, endTime: time });
-                      closeAllMenus();
-                    }}
-                    title={formatTime(time)}
-                  />
-                ))}
-              </Menu>
+                }).map((time) => ({
+                  label: formatTime(time),
+                  value: time,
+                  onPress: () => {
+                    setCurrentSchedule({ ...currentSchedule, endTime: time });
+                  },
+                }))}
+              />
             </View>
 
             <Button

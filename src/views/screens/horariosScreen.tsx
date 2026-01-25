@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
 import styled from 'styled-components/native';
-import { Text, Menu, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
+import { Text, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
 import { observer } from 'mobx-react-lite';
 import { useViewModelContext } from '../../context/ViewModelContext';
 import { SubjectCard } from '../components/SubjectCard';
+import { CustomDropdown } from '../components/CustomDropdown';
 import { ClaseType } from '../../types/types';
 import { Alert } from 'react-native';
 
@@ -417,8 +418,7 @@ const HorariosScreen = observer(() => {
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <View style={{ flex: 1 }}>
-              <Menu
-                key={`schedule-${menuKeyRef.current}`}
+              <CustomDropdown
                 visible={schedulePickerVisible}
                 onDismiss={closeAllMenus}
                 anchor={
@@ -430,18 +430,14 @@ const HorariosScreen = observer(() => {
                     {activeSchedule?.name || 'Seleccionar horario'}
                   </Button>
                 }
-              >
-                {schedules.map((schedule) => (
-                  <Menu.Item
-                    key={schedule.id}
-                    onPress={() => {
-                      horarioViewModel.setActiveHorario(schedule.id);
-                      closeAllMenus();
-                    }}
-                    title={schedule.name}
-                  />
-                ))}
-              </Menu>
+                items={schedules.map((schedule) => ({
+                  label: schedule.name,
+                  value: schedule.id,
+                  onPress: () => {
+                    horarioViewModel.setActiveHorario(schedule.id);
+                  },
+                }))}
+              />
             </View>
             {/* El boton de editar */}
             <IconButton
@@ -473,8 +469,7 @@ const HorariosScreen = observer(() => {
             Materias
           </Text>
           
-          <Menu
-            key={`menu-${menuKeyRef.current}`}
+          <CustomDropdown
             visible={menuVisible}
             onDismiss={closeAllMenus}
             anchor={
@@ -486,24 +481,23 @@ const HorariosScreen = observer(() => {
                 style={{ backgroundColor: '#06B6D4' }}
               />
             }
-          >
-            <Menu.Item
-              onPress={() => {
-                closeAllMenus();
-                setIsScheduleDialogOpen(true);
-              }}
-              title="Nuevo horario"
-              leadingIcon="plus"
-            />
-            <Menu.Item
-              onPress={() => {
-                closeAllMenus();
-                setIsSubjectDialogOpen(true);
-              }}
-              title="Nueva materia"
-              leadingIcon="plus"
-            />
-          </Menu>
+            items={[
+              {
+                label: 'Nuevo horario',
+                value: 'new-schedule',
+                onPress: () => {
+                  setIsScheduleDialogOpen(true);
+                },
+              },
+              {
+                label: 'Nueva materia',
+                value: 'new-subject',
+                onPress: () => {
+                  setIsSubjectDialogOpen(true);
+                },
+              },
+            ]}
+          />
         </Header>
 
         {/* Dialog para crear nuevo horario */}
@@ -646,8 +640,7 @@ const HorariosScreen = observer(() => {
                 </ScheduleChip>
               ))}
 
-              <Menu
-                key={`day-${menuKeyRef.current}`}
+              <CustomDropdown
                 visible={dayPickerVisible}
                 onDismiss={closeAllMenus}
                 anchor={
@@ -659,22 +652,17 @@ const HorariosScreen = observer(() => {
                     {currentSchedule.day || 'Selecciona un día'}
                   </Button>
                 }
-              >
-                {DAYS_OF_WEEK.map((day) => (
-                  <Menu.Item
-                    key={day}
-                    onPress={() => {
-                      setCurrentSchedule({ ...currentSchedule, day });
-                      closeAllMenus();
-                    }}
-                    title={day}
-                  />
-                ))}
-              </Menu>
+                items={DAYS_OF_WEEK.map((day) => ({
+                  label: day,
+                  value: day,
+                  onPress: () => {
+                    setCurrentSchedule({ ...currentSchedule, day });
+                  },
+                }))}
+              />
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Menu
-                  key={`startTime-${menuKeyRef.current}`}
+                <CustomDropdown
                   visible={startTimePickerVisible}
                   onDismiss={closeAllMenus}
                   anchor={
@@ -686,23 +674,18 @@ const HorariosScreen = observer(() => {
                       {currentSchedule.startTime ? formatTime(currentSchedule.startTime) : 'Inicio'}
                     </Button>
                   }
-                >
-                  {TIME_SLOTS.map((time) => (
-                    <Menu.Item
-                      key={time}
-                      onPress={() => {
-                        setCurrentSchedule({ ...currentSchedule, startTime: time });
-                        closeAllMenus();
-                      }}
-                      title={formatTime(time)}
-                    />
-                  ))}
-                </Menu>
+                  items={TIME_SLOTS.map((time) => ({
+                    label: formatTime(time),
+                    value: time,
+                    onPress: () => {
+                      setCurrentSchedule({ ...currentSchedule, startTime: time });
+                    },
+                  }))}
+                />
 
                 <Text>a</Text>
 
-                <Menu
-                  key={`endTime-${menuKeyRef.current}`}
+                <CustomDropdown
                   visible={endTimePickerVisible}
                   onDismiss={closeAllMenus}
                   anchor={
@@ -715,21 +698,17 @@ const HorariosScreen = observer(() => {
                       {currentSchedule.endTime ? formatTime(currentSchedule.endTime) : 'Fin'}
                     </Button>
                   }
-                >
-                  {TIME_SLOTS.filter(time => {
+                  items={TIME_SLOTS.filter(time => {
                     if (!currentSchedule.startTime) return true;
                     return time > currentSchedule.startTime;
-                  }).map((time) => (
-                    <Menu.Item
-                      key={time}
-                      onPress={() => {
-                        setCurrentSchedule({ ...currentSchedule, endTime: time });
-                        closeAllMenus();
-                      }}
-                      title={formatTime(time)}
-                    />
-                  ))}
-                </Menu>
+                  }).map((time) => ({
+                    label: formatTime(time),
+                    value: time,
+                    onPress: () => {
+                      setCurrentSchedule({ ...currentSchedule, endTime: time });
+                    },
+                  }))}
+                />
               </View>
 
               <Button
