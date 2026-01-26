@@ -88,9 +88,18 @@ const HourRow = styled.View`
   flex-direction: row;
   align-items: flex-start;
   margin-bottom: 2px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${({ theme }: { theme: any }) => theme?.colors?.surface || '#e4e4e7'};
   padding-bottom: 2px;
+  position: relative;
+`;
+
+const HourRowLine = styled.View`
+  position: absolute;
+  bottom: 0;
+  left: 50px;
+  right: 0;
+  height: 1px;
+  background-color: ${({ theme }: { theme: any }) => theme?.colors?.surface || '#e4e4e7'};
+  z-index: 1;
 `;
 
 const TimeLabel = styled(Text)`
@@ -107,6 +116,7 @@ const DaysRow = styled.View`
   flex: 1;
   flex-direction: row;
   position: relative;
+  z-index: 2;
 `;
 
 const DayCell = styled.View`
@@ -114,6 +124,7 @@ const DayCell = styled.View`
   height: 32px;
   margin-horizontal: 2px;
   position: relative;
+  z-index: 2;
 `;
 
 const ScheduleBlock = styled.View<{ color: string; duration: number }>`
@@ -128,6 +139,8 @@ const ScheduleBlock = styled.View<{ color: string; duration: number }>`
   justify-content: center;
   padding: 4px;
   height: ${({ duration }) => duration * 34}px;
+  z-index: 10;
+  elevation: 2;
 `;
 
 const SubjectText = styled(Text)`
@@ -191,6 +204,7 @@ export function ScheduleGrid({ subjects }: ScheduleGridProps) {
         <GridContainer>
           {hours.map((hour, hourIndex) => (
             <HourRow key={hourIndex}>
+              <HourRowLine />
               <TimeLabel>{hour}</TimeLabel>
               <DaysRow>
                 {days.map((_, dayIndex) => {
