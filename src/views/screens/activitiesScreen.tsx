@@ -326,7 +326,7 @@ const ActivitiesScreen = observer(() => {
     setIsAddActivityOpen(false);
   };
 
-  const calendarTheme = {
+  const calendarTheme = React.useMemo(() => ({
     backgroundColor: theme.colors.surface,
     calendarBackground: theme.colors.surface,
     textSectionTitleColor: theme.colors.text,
@@ -345,7 +345,7 @@ const ActivitiesScreen = observer(() => {
     textDayFontSize: 16,
     textMonthFontSize: 16,
     textDayHeaderFontSize: 13,
-  };
+  }), [theme.colors.surface, theme.colors.text, theme.colors.primary, themeMode]);
 
   return (
     <Container>
@@ -356,6 +356,7 @@ const ActivitiesScreen = observer(() => {
 
         <CalendarContainer backgroundColor={theme.colors.surface}>
           <Calendar
+            key={`calendar-${themeMode}`}
             current={formatDateKey(new Date())}
             markedDates={markedDates}
             onDayPress={(day) => {
