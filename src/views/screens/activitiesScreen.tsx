@@ -5,6 +5,7 @@ import { Text, Modal, Portal, TextInput, Button, RadioButton, IconButton } from 
 import { Calendar } from 'react-native-calendars';
 import { observer } from 'mobx-react-lite';
 import { useViewModelContext } from '../../context/ViewModelContext';
+import { useTheme } from '../../context/ThemeContext';
 import { convertMateriaToSubject } from '../../utils/typeConverters';
 import { ActividadType } from '../../repository/actividadesRepository';
 import { CustomDropdown } from '../components/CustomDropdown';
@@ -53,8 +54,8 @@ const Container = styled.View`
   padding: 16px;
 `;
 
-const CalendarContainer = styled.View`
-  background-color: #fff;
+const CalendarContainer = styled.View<{ backgroundColor: string }>`
+  background-color: ${({ backgroundColor }) => backgroundColor};
   border-radius: 24px;
   padding: 8px;
   margin-bottom: 24px;
@@ -65,8 +66,8 @@ const CalendarContainer = styled.View`
   elevation: 1;
 `;
 
-const ActivityCard = styled.View`
-  background-color: #fff;
+const ActivityCard = styled.View<{ backgroundColor: string }>`
+  background-color: ${({ backgroundColor }) => backgroundColor};
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
@@ -84,8 +85,8 @@ const HeaderRow = styled.View`
   margin-bottom: 16px;
 `;
 
-const EmptyState = styled.View`
-  background-color: #F9FAFB;
+const EmptyState = styled.View<{ backgroundColor: string }>`
+  background-color: ${({ backgroundColor }) => backgroundColor};
   border-radius: 16px;
   padding: 32px;
   align-items: center;
@@ -169,6 +170,7 @@ function prepareActividadForCreation(
 
 const ActivitiesScreen = observer(() => {
   const { materiasViewModel, horarioViewModel, actividadesViewModel } = useViewModelContext();
+  const { theme, themeMode } = useTheme();
 
   // Cargar horarios y materias al montar el componente
   React.useEffect(() => {
@@ -324,14 +326,35 @@ const ActivitiesScreen = observer(() => {
     setIsAddActivityOpen(false);
   };
 
+  const calendarTheme = {
+    backgroundColor: theme.colors.surface,
+    calendarBackground: theme.colors.surface,
+    textSectionTitleColor: theme.colors.text,
+    selectedDayBackgroundColor: theme.colors.primary,
+    selectedDayTextColor: '#ffffff',
+    todayTextColor: theme.colors.primary,
+    dayTextColor: theme.colors.text,
+    textDisabledColor: themeMode === 'dark' ? '#4B5563' : '#d9e1e8',
+    dotColor: theme.colors.primary,
+    selectedDotColor: '#ffffff',
+    arrowColor: theme.colors.primary,
+    monthTextColor: theme.colors.text,
+    textDayFontWeight: '400' as const,
+    textMonthFontWeight: 'bold' as const,
+    textDayHeaderFontWeight: '600' as const,
+    textDayFontSize: 16,
+    textMonthFontSize: 16,
+    textDayHeaderFontSize: 13,
+  };
+
   return (
     <Container>
       <ScrollView>
-        <Text variant="titleLarge" style={{ color: '#60A5FA', textAlign: 'center', marginBottom: 24 }}>
+        <Text variant="titleLarge" style={{ color: theme.colors.primary, textAlign: 'center', marginBottom: 24 }}>
           Calendario
         </Text>
 
-        <CalendarContainer>
+        <CalendarContainer backgroundColor={theme.colors.surface}>
           <Calendar
             current={formatDateKey(new Date())}
             markedDates={markedDates}
@@ -339,33 +362,14 @@ const ActivitiesScreen = observer(() => {
               const [year, month, date] = day.dateString.split('-').map(Number);
               setSelectedDate(new Date(year, month - 1, date));
             }}
-            theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#b6c1cd',
-              selectedDayBackgroundColor: '#3b82f6',
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: '#3b82f6',
-              dayTextColor: '#2d4150',
-              textDisabledColor: '#d9e1e8',
-              dotColor: '#3b82f6',
-              selectedDotColor: '#ffffff',
-              arrowColor: '#3b82f6',
-              monthTextColor: '#2d4150',
-              textDayFontWeight: '400',
-              textMonthFontWeight: 'bold',
-              textDayHeaderFontWeight: '600',
-              textDayFontSize: 16,
-              textMonthFontSize: 16,
-              textDayHeaderFontSize: 13,
-            }}
+            theme={calendarTheme}
           />
         </CalendarContainer>
 
         {selectedDate && (
           <View>
             <HeaderRow>
-              <Text variant="titleMedium" style={{ color: '#374151' }}>
+              <Text variant="titleMedium" style={{ color: theme.colors.text }}>
                 {formatDate(selectedDate)}
               </Text>
               <IconButton
@@ -384,7 +388,7 @@ const ActivitiesScreen = observer(() => {
                     ? convertedSubjects.find(s => s.id === activity.subjectId)
                     : null;
                   return (
-                    <ActivityCard key={activity.id}>
+                    <ActivityCard key={activity.id} backgroundColor={theme.colors.surface}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                           <View
@@ -397,24 +401,24 @@ const ActivitiesScreen = observer(() => {
                             <IconButton icon="clock-outline" iconColor="#fff" size={16} />
                           </View>
                           <View style={{ flex: 1 }}>
-                            <Text variant="titleMedium" style={{ color: '#1F2937' }}>
+                            <Text variant="titleMedium" style={{ color: theme.colors.text }}>
                               {activity.title}
                             </Text>
                             {activity.time && (
-                              <Text variant="bodySmall" style={{ color: '#6B7280' }}>
+                              <Text variant="bodySmall" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
                                 {activity.time}
                               </Text>
                             )}
                           </View>
                         </View>
                         <TouchableOpacity onPress={() => handleDeleteActivity(activity.id)}>
-                          <IconButton icon="close" iconColor="#9CA3AF" size={20} />
+                          <IconButton icon="close" iconColor={themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF'} size={20} />
                         </TouchableOpacity>
                       </View>
                       {activity.description && (
                         <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                          <IconButton icon="file-document-outline" iconColor="#9CA3AF" size={16} />
-                          <Text variant="bodyMedium" style={{ color: '#4B5563', flex: 1 }}>
+                          <IconButton icon="file-document-outline" iconColor={themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF'} size={16} />
+                          <Text variant="bodyMedium" style={{ color: themeMode === 'dark' ? '#D1D5DB' : '#4B5563', flex: 1 }}>
                             {activity.description}
                           </Text>
                         </View>
@@ -424,10 +428,10 @@ const ActivitiesScreen = observer(() => {
                 })}
               </View>
             ) : (
-              <EmptyState>
+              <EmptyState backgroundColor={theme.colors.surface}>
                 <View
                   style={{
-                    backgroundColor: '#E5E7EB',
+                    backgroundColor: themeMode === 'dark' ? '#374151' : '#E5E7EB',
                     width: 64,
                     height: 64,
                     borderRadius: 32,
@@ -436,9 +440,9 @@ const ActivitiesScreen = observer(() => {
                     marginBottom: 12,
                   }}
                 >
-                  <IconButton icon="clock-outline" iconColor="#9CA3AF" size={24} />
+                  <IconButton icon="clock-outline" iconColor={themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF'} size={24} />
                 </View>
-                <Text variant="bodyMedium" style={{ color: '#9CA3AF', marginBottom: 16 }}>
+                <Text variant="bodyMedium" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF', marginBottom: 16 }}>
                   No hay actividades para este día
                 </Text>
                 <Button
@@ -458,7 +462,7 @@ const ActivitiesScreen = observer(() => {
             visible={isAddActivityOpen}
             onDismiss={resetForm}
             contentContainerStyle={{
-              backgroundColor: '#fff',
+              backgroundColor: theme.colors.surface,
               padding: 24,
               margin: 20,
               borderRadius: 16,
@@ -466,17 +470,17 @@ const ActivitiesScreen = observer(() => {
             }}
           >
             <ScrollView>
-              <Text variant="titleLarge" style={{ color: '#2563EB', marginBottom: 8 }}>
+              <Text variant="titleLarge" style={{ color: theme.colors.primary, marginBottom: 8 }}>
                 Nueva actividad
               </Text>
-              <Text variant="bodyMedium" style={{ color: '#6B7280', marginBottom: 16 }}>
+              <Text variant="bodyMedium" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280', marginBottom: 16 }}>
                 {activityType === 'free'
                   ? 'Crea una actividad personalizada'
                   : `Agrega una actividad para el ${formatDate(selectedDate)}`}
               </Text>
 
               <View style={{ marginBottom: 16 }}>
-                <Text variant="bodyMedium" style={{ color: '#374151', marginBottom: 8 }}>
+                <Text variant="bodyMedium" style={{ color: theme.colors.text, marginBottom: 8 }}>
                   Tipo de actividad
                 </Text>
                 <RadioButton.Group
@@ -485,13 +489,13 @@ const ActivitiesScreen = observer(() => {
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <RadioButton value="free" />
-                    <Text variant="bodyMedium" style={{ color: '#374151' }}>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
                       Actividad libre
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <RadioButton value="subject" />
-                    <Text variant="bodyMedium" style={{ color: '#374151' }}>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
                       Asociada a una materia
                     </Text>
                   </View>
@@ -500,12 +504,12 @@ const ActivitiesScreen = observer(() => {
 
               {activityType === 'free' && (
                 <View style={{ marginBottom: 16 }}>
-                  <Text variant="bodyMedium" style={{ color: '#374151', marginBottom: 8 }}>
+                  <Text variant="bodyMedium" style={{ color: theme.colors.text, marginBottom: 8 }}>
                     Fecha
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <View style={{ flex: 1 }}>
-                      <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 4 }}>
+                      <Text variant="bodySmall" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280', marginBottom: 4 }}>
                         Día
                       </Text>
                       <CustomDropdown
@@ -515,7 +519,7 @@ const ActivitiesScreen = observer(() => {
                           <Button
                             mode="outlined"
                             onPress={() => setDayPickerVisible(true)}
-                            style={{ backgroundColor: '#F3F4F6' }}
+                            style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                           >
                             {freeActivityDay || 'Día'}
                           </Button>
@@ -531,7 +535,7 @@ const ActivitiesScreen = observer(() => {
                     </View>
 
                     <View style={{ flex: 1 }}>
-                      <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 4 }}>
+                      <Text variant="bodySmall" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280', marginBottom: 4 }}>
                         Mes
                       </Text>
                       <CustomDropdown
@@ -541,7 +545,7 @@ const ActivitiesScreen = observer(() => {
                           <Button
                             mode="outlined"
                             onPress={() => setMonthPickerVisible(true)}
-                            style={{ backgroundColor: '#F3F4F6' }}
+                            style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                           >
                             {freeActivityMonth ? MONTH_NAMES[parseInt(freeActivityMonth)] : 'Mes'}
                           </Button>
@@ -557,7 +561,7 @@ const ActivitiesScreen = observer(() => {
                     </View>
 
                     <View style={{ flex: 1 }}>
-                      <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 4 }}>
+                      <Text variant="bodySmall" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280', marginBottom: 4 }}>
                         Año
                       </Text>
                       <CustomDropdown
@@ -567,7 +571,7 @@ const ActivitiesScreen = observer(() => {
                           <Button
                             mode="outlined"
                             onPress={() => setYearPickerVisible(true)}
-                            style={{ backgroundColor: '#F3F4F6' }}
+                            style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                           >
                             {freeActivityYear || 'Año'}
                           </Button>
@@ -588,7 +592,7 @@ const ActivitiesScreen = observer(() => {
               {activityType === 'subject' && (
                 <>
                   <View style={{ marginBottom: 16 }}>
-                    <Text variant="bodyMedium" style={{ color: '#374151', marginBottom: 8 }}>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.text, marginBottom: 8 }}>
                       Materia
                     </Text>
                     <CustomDropdown
@@ -598,7 +602,7 @@ const ActivitiesScreen = observer(() => {
                         <Button
                           mode="outlined"
                           onPress={() => setSubjectPickerVisible(true)}
-                          style={{ backgroundColor: '#F3F4F6' }}
+                          style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                         >
                           {selectedSubject
                             ? convertedSubjects.find(s => s.id === selectedSubject)?.name
@@ -618,7 +622,7 @@ const ActivitiesScreen = observer(() => {
 
                   {selectedSubject && (
                     <View style={{ marginBottom: 16 }}>
-                      <Text variant="bodyMedium" style={{ color: '#374151', marginBottom: 8 }}>
+                      <Text variant="bodyMedium" style={{ color: theme.colors.text, marginBottom: 8 }}>
                         Día de la semana
                       </Text>
                       <CustomDropdown
@@ -628,7 +632,7 @@ const ActivitiesScreen = observer(() => {
                           <Button
                             mode="outlined"
                             onPress={() => setSubjectDayPickerVisible(true)}
-                            style={{ backgroundColor: '#F3F4F6' }}
+                            style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                           >
                             {selectedDay !== null
                               ? (() => {
@@ -665,7 +669,7 @@ const ActivitiesScreen = observer(() => {
                   value={newActivity.title}
                   onChangeText={(text) => setNewActivity({ ...newActivity, title: text })}
                   mode="outlined"
-                  style={{ backgroundColor: '#F3F4F6' }}
+                  style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                 />
               </View>
 
@@ -678,7 +682,7 @@ const ActivitiesScreen = observer(() => {
                   mode="outlined"
                   multiline
                   numberOfLines={3}
-                  style={{ backgroundColor: '#F3F4F6' }}
+                  style={{ backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
                 />
               </View>
 
