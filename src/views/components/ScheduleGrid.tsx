@@ -141,12 +141,19 @@ const ScheduleBlock = styled.View<{ color: string; duration: number }>`
   height: ${({ duration }) => duration * 34}px;
   z-index: 10;
   elevation: 2;
+  overflow: hidden;
+`;
+
+const SubjectTextContainer = styled.View`
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  padding-horizontal: 2px;
 `;
 
 const SubjectText = styled(Text)`
   color: #ffffff;
-  font-size: 10px;
-  line-height: 12px;
   text-align: center;
   font-weight: 500;
 `;
@@ -163,13 +170,13 @@ export function ScheduleGrid({ subjects }: ScheduleGridProps) {
     }))
   ).filter(block => block.day !== -1); // Filtrar días no válidos
 
-  // Función para truncar por palabras
-  const truncateWords = (text: string, maxWords: number = 3) => {
-    const words = text.split(' ');
-    if (words.length <= maxWords) return words;
-    return [...words.slice(0, maxWords), '...'];
+  // Función para obtener el tamaño de fuente base según la duración
+  const getBaseFontSize = (duration: number): number => {
+    if (duration === 1) return 9;
+    if (duration === 2) return 10;
+    return 11;
   };
-  
+
   const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
   const hours = [
     '8:00 am',
@@ -223,9 +230,19 @@ export function ScheduleGrid({ subjects }: ScheduleGridProps) {
                     <DayCell key={dayIndex}>
                       {block && !isOccupied && (
                         <ScheduleBlock color={block.color} duration={block.duration}>
-                          {truncateWords(block.subjectName).map((word, idx) => (
-                            <SubjectText key={idx}>{word}</SubjectText>
-                          ))}
+                          <SubjectTextContainer>
+                            <SubjectText 
+                              numberOfLines={Math.max(1, Math.floor(block.duration * 1.5))}
+                              adjustsFontSizeToFit={true}
+                              minimumFontScale={0.5}
+                              style={{ 
+                                fontSize: getBaseFontSize(block.duration),
+                                lineHeight: getBaseFontSize(block.duration) + 2
+                              }}
+                            >
+                              {block.subjectName}
+                            </SubjectText>
+                          </SubjectTextContainer>
                         </ScheduleBlock>
                       )}
                     </DayCell>
