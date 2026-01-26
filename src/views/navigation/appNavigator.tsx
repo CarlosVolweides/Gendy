@@ -45,7 +45,8 @@ function BottomTabs() {
         name="Horarios"
         component={HorariosScreen}
         options={{ 
-          title: 'Gendy',
+          title: 'Horario',
+          headerTitle: 'Gendy',
           tabBarIcon: ({ color }) => <IconButton icon="format-list-bulleted" iconColor={color} /> 
         }}
       />
@@ -53,7 +54,8 @@ function BottomTabs() {
         name="Home"
         component={HomeScreen}
         options={{ 
-          title: 'Gendy',
+          title: 'Inicio',
+          headerTitle: 'Gendy',
           tabBarIcon: ({ color }) => <IconButton icon="home" iconColor={color} /> 
         }}
       />
@@ -61,7 +63,8 @@ function BottomTabs() {
         name="Calendario"
         component={ActivitiesScreen}
         options={{ 
-          title: 'Gendy',
+          title: 'Calendario',
+          headerTitle: 'Gendy',
           tabBarIcon: ({ color }) => <IconButton icon="calendar" iconColor={color} /> 
         }}
       />
