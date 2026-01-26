@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated, Modal, Pressable, Dimensions } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated, Modal, Pressable, Dimensions, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Portal } from 'react-native-paper';
 
@@ -28,7 +28,7 @@ export function CustomDropdown({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const [anchorLayout, setAnchorLayout] = React.useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, minWidth: 0 });
+  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, minWidth: 0, maxHeight: 300 });
   const anchorRef = React.useRef<View>(null);
   const dropdownRef = React.useRef<View>(null);
 
@@ -37,8 +37,10 @@ export function CustomDropdown({
     const screenWidth = Dimensions.get('window').width;
     const screenHeight = Dimensions.get('window').height;
     
-    // Estimate dropdown height (each item is ~48px + padding)
-    const estimatedDropdownHeight = items.length * 48 + 8;
+    // Maximum dropdown height (with scroll)
+    const MAX_DROPDOWN_HEIGHT = 300;
+    const ITEM_HEIGHT = 48;
+    const estimatedDropdownHeight = Math.min(items.length * ITEM_HEIGHT + 8, MAX_DROPDOWN_HEIGHT);
     const estimatedDropdownWidth = Math.max(width, 112);
     
     // Calculate vertical position
@@ -69,6 +71,7 @@ export function CustomDropdown({
       top: Math.max(8, Math.min(top, screenHeight - estimatedDropdownHeight - 8)),
       left,
       minWidth: Math.min(estimatedDropdownWidth, screenWidth - 16),
+      maxHeight: estimatedDropdownHeight,
     };
   };
 
@@ -134,31 +137,39 @@ export function CustomDropdown({
                   top: dropdownPosition.top,
                   left: dropdownPosition.left,
                   minWidth: dropdownPosition.minWidth,
+                  maxHeight: dropdownPosition.maxHeight,
                 },
                 dropdownStyle,
               ]}
             >
-              {items.map((item, index) => (
-                <TouchableOpacity
-                  key={item.value || index}
-                  style={[
-                    styles.item,
-                    index === items.length - 1 && styles.lastItem,
-                  ]}
-                  onPress={() => {
-                    item.onPress();
-                    onDismiss();
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    variant="bodyMedium"
-                    style={[styles.itemText, item.titleStyle]}
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={true}
+              >
+                {items.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.value || index}
+                    style={[
+                      styles.item,
+                      index === items.length - 1 && styles.lastItem,
+                    ]}
+                    onPress={() => {
+                      item.onPress();
+                      onDismiss();
+                    }}
+                    activeOpacity={0.7}
                   >
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      variant="bodyMedium"
+                      style={[styles.itemText, item.titleStyle]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </Animated.View>
           </Pressable>
         </Modal>
@@ -185,6 +196,13 @@ const styles = StyleSheet.create({
     minWidth: 112,
     maxWidth: 280,
     zIndex: 1000,
+    overflow: 'hidden',
+  },
+  scrollView: {
+    maxHeight: 300,
+  },
+  scrollContent: {
+    paddingVertical: 0,
   },
   item: {
     paddingHorizontal: 16,

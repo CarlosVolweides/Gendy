@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
-import { Text, Modal, Portal, TextInput, Button, RadioButton, Menu, IconButton } from 'react-native-paper';
+import { Text, Modal, Portal, TextInput, Button, RadioButton, IconButton } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
 import { observer } from 'mobx-react-lite';
 import { useViewModelContext } from '../../context/ViewModelContext';
 import { convertMateriaToSubject } from '../../utils/typeConverters';
 import { ActividadType } from '../../repository/actividadesRepository';
+import { CustomDropdown } from '../components/CustomDropdown';
 
 interface Activity {
   id: string;
@@ -507,7 +508,7 @@ const ActivitiesScreen = observer(() => {
                       <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 4 }}>
                         Día
                       </Text>
-                      <Menu
+                      <CustomDropdown
                         visible={dayPickerVisible}
                         onDismiss={() => setDayPickerVisible(false)}
                         anchor={
@@ -519,25 +520,21 @@ const ActivitiesScreen = observer(() => {
                             {freeActivityDay || 'Día'}
                           </Button>
                         }
-                      >
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                          <Menu.Item
-                            key={day}
-                            onPress={() => {
-                              setFreeActivityDay(day.toString());
-                              setDayPickerVisible(false);
-                            }}
-                            title={day.toString()}
-                          />
-                        ))}
-                      </Menu>
+                        items={Array.from({ length: 31 }, (_, i) => i + 1).map((day) => ({
+                          label: day.toString(),
+                          value: day.toString(),
+                          onPress: () => {
+                            setFreeActivityDay(day.toString());
+                          },
+                        }))}
+                      />
                     </View>
 
                     <View style={{ flex: 1 }}>
                       <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 4 }}>
                         Mes
                       </Text>
-                      <Menu
+                      <CustomDropdown
                         visible={monthPickerVisible}
                         onDismiss={() => setMonthPickerVisible(false)}
                         anchor={
@@ -549,25 +546,21 @@ const ActivitiesScreen = observer(() => {
                             {freeActivityMonth ? MONTH_NAMES[parseInt(freeActivityMonth)] : 'Mes'}
                           </Button>
                         }
-                      >
-                        {MONTH_NAMES.map((month, index) => (
-                          <Menu.Item
-                            key={index}
-                            onPress={() => {
-                              setFreeActivityMonth(index.toString());
-                              setMonthPickerVisible(false);
-                            }}
-                            title={month}
-                          />
-                        ))}
-                      </Menu>
+                        items={MONTH_NAMES.map((month, index) => ({
+                          label: month,
+                          value: index.toString(),
+                          onPress: () => {
+                            setFreeActivityMonth(index.toString());
+                          },
+                        }))}
+                      />
                     </View>
 
                     <View style={{ flex: 1 }}>
                       <Text variant="bodySmall" style={{ color: '#6B7280', marginBottom: 4 }}>
                         Año
                       </Text>
-                      <Menu
+                      <CustomDropdown
                         visible={yearPickerVisible}
                         onDismiss={() => setYearPickerVisible(false)}
                         anchor={
@@ -579,18 +572,14 @@ const ActivitiesScreen = observer(() => {
                             {freeActivityYear || 'Año'}
                           </Button>
                         }
-                      >
-                        {Array.from({ length: 5 }, (_, i) => 2025 + i).map((year) => (
-                          <Menu.Item
-                            key={year}
-                            onPress={() => {
-                              setFreeActivityYear(year.toString());
-                              setYearPickerVisible(false);
-                            }}
-                            title={year.toString()}
-                          />
-                        ))}
-                      </Menu>
+                        items={Array.from({ length: 5 }, (_, i) => 2025 + i).map((year) => ({
+                          label: year.toString(),
+                          value: year.toString(),
+                          onPress: () => {
+                            setFreeActivityYear(year.toString());
+                          },
+                        }))}
+                      />
                     </View>
                   </View>
                 </View>
@@ -602,7 +591,7 @@ const ActivitiesScreen = observer(() => {
                     <Text variant="bodyMedium" style={{ color: '#374151', marginBottom: 8 }}>
                       Materia
                     </Text>
-                    <Menu
+                    <CustomDropdown
                       visible={subjectPickerVisible}
                       onDismiss={() => setSubjectPickerVisible(false)}
                       anchor={
@@ -616,19 +605,15 @@ const ActivitiesScreen = observer(() => {
                             : 'Selecciona una materia'}
                         </Button>
                       }
-                    >
-                      {convertedSubjects.map((subject) => (
-                        <Menu.Item
-                          key={subject.id}
-                          onPress={() => {
-                            setSelectedSubject(subject.id);
-                            setSelectedDay(null);
-                            setSubjectPickerVisible(false);
-                          }}
-                          title={subject.name}
-                        />
-                      ))}
-                    </Menu>
+                      items={convertedSubjects.map((subject) => ({
+                        label: subject.name,
+                        value: subject.id,
+                        onPress: () => {
+                          setSelectedSubject(subject.id);
+                          setSelectedDay(null);
+                        },
+                      }))}
+                    />
                   </View>
 
                   {selectedSubject && (
@@ -636,7 +621,7 @@ const ActivitiesScreen = observer(() => {
                       <Text variant="bodyMedium" style={{ color: '#374151', marginBottom: 8 }}>
                         Día de la semana
                       </Text>
-                      <Menu
+                      <CustomDropdown
                         visible={subjectDayPickerVisible}
                         onDismiss={() => setSubjectDayPickerVisible(false)}
                         anchor={
@@ -656,20 +641,18 @@ const ActivitiesScreen = observer(() => {
                               : 'Selecciona un día'}
                           </Button>
                         }
-                      >
-                        {convertedSubjects
-                          .find(s => s.id === selectedSubject)
-                          ?.schedule.map((sched) => (
-                            <Menu.Item
-                              key={sched.day}
-                              onPress={() => {
+                        items={
+                          convertedSubjects
+                            .find(s => s.id === selectedSubject)
+                            ?.schedule.map((sched) => ({
+                              label: `${DAY_NAMES[sched.day]} (${sched.startTime} - ${sched.endTime})`,
+                              value: sched.day.toString(),
+                              onPress: () => {
                                 setSelectedDay(sched.day);
-                                setSubjectDayPickerVisible(false);
-                              }}
-                              title={`${DAY_NAMES[sched.day]} (${sched.startTime} - ${sched.endTime})`}
-                            />
-                          ))}
-                      </Menu>
+                              },
+                            })) || []
+                        }
+                      />
                     </View>
                   )}
                 </>
