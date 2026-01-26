@@ -41,7 +41,10 @@ export function CustomDropdown({
     const MAX_DROPDOWN_HEIGHT = 300;
     const ITEM_HEIGHT = 48;
     const estimatedDropdownHeight = Math.min(items.length * ITEM_HEIGHT + 8, MAX_DROPDOWN_HEIGHT);
-    const estimatedDropdownWidth = Math.max(width, 112);
+    
+    // Calculate minimum width needed for items (estimate based on longest label)
+    const MIN_DROPDOWN_WIDTH = 160; // Minimum width to show text properly
+    const estimatedDropdownWidth = Math.max(width, MIN_DROPDOWN_WIDTH);
     
     // Calculate vertical position
     const spaceBelow = screenHeight - (y + height);
@@ -49,18 +52,39 @@ export function CustomDropdown({
     const showAbove = spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
     
     // Calculate horizontal position
-    let left = x;
-    const spaceRight = screenWidth - x;
-    const spaceLeft = x;
+    // Check if anchor is on the right side of screen
+    const anchorCenterX = x + width / 2;
+    const isOnRightSide = anchorCenterX > screenWidth / 2;
     
-    // If dropdown would overflow on the right, align to right edge
-    if (left + estimatedDropdownWidth > screenWidth) {
-      left = screenWidth - estimatedDropdownWidth - 8; // 8px margin
+    let left = x;
+    
+    // If anchor is on the right side, align dropdown to the right edge of anchor
+    if (isOnRightSide) {
+      // Align right edge of dropdown with right edge of anchor
+      left = x + width - estimatedDropdownWidth;
+      
+      // If this would overflow on the left, align to right edge of screen
+      if (left < 8) {
+        left = screenWidth - estimatedDropdownWidth - 8;
+      }
+    } else {
+      // If anchor is on the left side, align dropdown to the left edge of anchor
+      left = x;
+      
+      // If this would overflow on the right, align to left edge of screen
+      if (left + estimatedDropdownWidth > screenWidth - 8) {
+        left = screenWidth - estimatedDropdownWidth - 8;
+      }
     }
     
     // Ensure minimum left margin
     if (left < 8) {
       left = 8;
+    }
+    
+    // Ensure dropdown doesn't overflow on the right
+    if (left + estimatedDropdownWidth > screenWidth - 8) {
+      left = screenWidth - estimatedDropdownWidth - 8;
     }
     
     const top = showAbove 
@@ -69,7 +93,7 @@ export function CustomDropdown({
     
     return {
       top: Math.max(8, Math.min(top, screenHeight - estimatedDropdownHeight - 8)),
-      left,
+      left: Math.max(8, left),
       minWidth: Math.min(estimatedDropdownWidth, screenWidth - 16),
       maxHeight: estimatedDropdownHeight,
     };
