@@ -43,24 +43,29 @@ interface SettingItemProps {
   variant?: 'default' | 'danger';
 }
 
-function SettingItem({ icon, label, onPress, variant = 'default' }: SettingItemProps) {
+function SettingItem({ icon, label, onPress, variant = 'default' }: SettingItemProps & { theme?: any; themeMode?: 'light' | 'dark' }) {
+  const { theme, themeMode } = useTheme();
+  const iconColor = variant === 'danger' ? '#DC2626' : (themeMode === 'dark' ? '#9CA3AF' : '#4B5563');
+  const textColor = variant === 'danger' ? '#DC2626' : theme.colors.text;
+  const chevronColor = themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF';
+  
   return (
     <SettingItemContainer onPress={onPress} variant={variant}>
       <SettingItemContent>
         <IconButton 
           icon={icon} 
-          iconColor={variant === 'danger' ? '#DC2626' : '#4B5563'} 
+          iconColor={iconColor} 
           size={20}
         />
         <Text variant="bodyLarge" style={{ 
-          color: variant === 'danger' ? '#DC2626' : '#1F2937',
+          color: textColor,
           flex: 1 
         }}>
           {label}
         </Text>
         <IconButton 
           icon="chevron-right" 
-          iconColor="#9CA3AF" 
+          iconColor={chevronColor} 
           size={20}
         />
       </SettingItemContent>
@@ -74,10 +79,14 @@ interface SettingSectionProps {
 }
 
 function SettingSection({ title, children }: SettingSectionProps) {
+  const { theme, themeMode } = useTheme();
   return (
     <SectionContainer>
-      <SectionTitle>{title}</SectionTitle>
-      <SectionContent>
+      <SectionTitle color={themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF'}>{title}</SectionTitle>
+      <SectionContent 
+        backgroundColor={theme.colors.surface}
+        borderColor={themeMode === 'dark' ? '#374151' : '#F3F4F6'}
+      >
         {children}
       </SectionContent>
     </SectionContainer>
@@ -93,8 +102,8 @@ const Content = styled.View`
   padding: 16px;
 `;
 
-const Title = styled(Text)`
-  color: #60A5FA;
+const Title = styled(Text)<{ color: string }>`
+  color: ${({ color }) => color};
   font-size: 20px;
   text-align: center;
   margin-bottom: 24px;
@@ -104,18 +113,18 @@ const SectionContainer = styled.View`
   margin-bottom: 24px;
 `;
 
-const SectionTitle = styled(Text)`
-  color: #9CA3AF;
+const SectionTitle = styled(Text)<{ color: string }>`
+  color: ${({ color }) => color};
   font-size: 14px;
   margin-bottom: 12px;
   padding-left: 8px;
 `;
 
-const SectionContent = styled.View`
-  background-color: #fff;
+const SectionContent = styled.View<{ backgroundColor: string; borderColor: string }>`
+  background-color: ${({ backgroundColor }) => backgroundColor};
   border-radius: 24px;
   padding: 8px;
-  border: 1px solid #F3F4F6;
+  border: 1px solid ${({ borderColor }) => borderColor};
 `;
 
 const SettingItemContainer = styled.TouchableOpacity<{ variant: 'default' | 'danger' }>`
@@ -199,7 +208,7 @@ export default function SettingsScreen() {
   return (
     <Container>
       <Content>
-        <Title variant="titleLarge">Configuraciones</Title>
+        <Title variant="titleLarge" color={theme.colors.primary}>Configuraciones</Title>
 
         {/* Importar/Exportar */}
         <SettingSection title="Datos">
