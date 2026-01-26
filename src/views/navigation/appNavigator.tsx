@@ -22,6 +22,7 @@ function BottomTabs() {
     <Tab.Navigator
       screenOptions={{
         headerStyle: { backgroundColor: theme.colors.background },
+        headerTintColor: theme.colors.text,
         tabBarStyle: { backgroundColor: theme.colors.surface },
         tabBarActiveTintColor: theme.colors.primary,
         headerRight: () => (
@@ -43,23 +44,34 @@ function BottomTabs() {
       <Tab.Screen
         name="Horarios"
         component={HorariosScreen}
-        options={{ tabBarIcon: ({ color }) => <IconButton icon="format-list-bulleted" iconColor={color} /> }}
+        options={{ 
+          title: 'Gendy',
+          tabBarIcon: ({ color }) => <IconButton icon="format-list-bulleted" iconColor={color} /> 
+        }}
       />
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarIcon: ({ color }) => <IconButton icon="home" iconColor={color} /> }}
+        options={{ 
+          title: 'Gendy',
+          tabBarIcon: ({ color }) => <IconButton icon="home" iconColor={color} /> 
+        }}
       />
       <Tab.Screen
         name="Calendario"
         component={ActivitiesScreen}
-        options={{ tabBarIcon: ({ color }) => <IconButton icon="calendar" iconColor={color} /> }}
+        options={{ 
+          title: 'Gendy',
+          tabBarIcon: ({ color }) => <IconButton icon="calendar" iconColor={color} /> 
+        }}
       />
     </Tab.Navigator>
   );
 }
 
 export default function AppNavigator() {
+  const { theme } = useTheme();
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -69,7 +81,9 @@ export default function AppNavigator() {
           component={SettingsScreen}
           options={{
             headerShown: true,
-            title: 'Configuraciones',
+            title: 'Gendy',
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.text,
           }}
         />
       </Stack.Navigator>
