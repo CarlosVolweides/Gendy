@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import { Text, IconButton, Modal, Portal, TextInput, Button, Icon } from 'react-native-paper';
+import { useTheme } from '../../context/ThemeContext';
 import { CustomDropdown } from './CustomDropdown';
 
 interface ScheduleDay {
@@ -118,6 +119,7 @@ const ScheduleChip = styled.View`
 `;
 
 export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }: SubjectCardProps) {
+  const { theme, themeMode } = useTheme();
   const [editModalVisible, setEditModalVisible] = React.useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
   const [editedSubject, setEditedSubject] = React.useState({
@@ -289,7 +291,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
           visible={editModalVisible}
           onDismiss={() => setEditModalVisible(false)}
           contentContainerStyle={{
-            backgroundColor: '#fff',
+            backgroundColor: theme.colors.surface,
             padding: 24,
             margin: 20,
             borderRadius: 16,
@@ -297,7 +299,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
           }}
         >
           <ScrollView>
-            <Text variant="titleLarge" style={{ color: '#2563EB', marginBottom: 16 }}>
+            <Text variant="titleLarge" style={{ color: theme.colors.primary, marginBottom: 16 }}>
               Nombre de la materia:
             </Text>
             
@@ -306,10 +308,10 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
               value={editedSubject.title}
               onChangeText={(text) => setEditedSubject({ ...editedSubject, title: text })}
               mode="outlined"
-              style={{ marginBottom: 16, backgroundColor: '#F3F4F6' }}
+              style={{ marginBottom: 16, backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
             />
 
-            <Text variant="titleMedium" style={{ color: '#2563EB', marginBottom: 12 }}>
+            <Text variant="titleMedium" style={{ color: theme.colors.primary, marginBottom: 12 }}>
               Clases:
             </Text>
 
@@ -409,7 +411,7 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
               Añadir +
             </Button>
 
-            <Text variant="titleMedium" style={{ color: '#2563EB', marginBottom: 12 }}>
+            <Text variant="titleMedium" style={{ color: theme.colors.primary, marginBottom: 12 }}>
               Color de la materia:
             </Text>
 
@@ -448,16 +450,16 @@ export function SubjectCard({ id, title, schedules, color, onUpdate, onDelete }:
           visible={deleteModalVisible}
           onDismiss={() => setDeleteModalVisible(false)}
           contentContainerStyle={{
-            backgroundColor: '#fff',
+            backgroundColor: theme.colors.surface,
             padding: 24,
             margin: 20,
             borderRadius: 16,
           }}
         >
-          <Text variant="titleLarge" style={{ marginBottom: 8 }}>
+          <Text variant="titleLarge" style={{ color: theme.colors.text, marginBottom: 8 }}>
             ¿Estás seguro?
           </Text>
-          <Text variant="bodyMedium" style={{ marginBottom: 24, color: '#6B7280' }}>
+          <Text variant="bodyMedium" style={{ marginBottom: 24, color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
             Esta acción no se puede deshacer. Se eliminará permanentemente la materia "{title}" y todos sus horarios.
           </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>

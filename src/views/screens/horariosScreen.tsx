@@ -4,6 +4,7 @@ import styled from 'styled-components/native';
 import { Text, IconButton, Modal, Portal, TextInput, Button } from 'react-native-paper';
 import { observer } from 'mobx-react-lite';
 import { useViewModelContext } from '../../context/ViewModelContext';
+import { useTheme } from '../../context/ThemeContext';
 import { SubjectCard } from '../components/SubjectCard';
 import { CustomDropdown } from '../components/CustomDropdown';
 import { ClaseType } from '../../types/types';
@@ -149,6 +150,7 @@ const scheduleDayToClase = (scheduleDay: ScheduleDay): ClaseType => {
 
 const HorariosScreen = observer(() => {
   const { horarioViewModel, materiasViewModel, clasesViewModel } = useViewModelContext();
+  const { theme, themeMode } = useTheme();
   
 
   const [isEditScheduleOpen, setIsEditScheduleOpen] = React.useState(false);
@@ -509,16 +511,16 @@ const HorariosScreen = observer(() => {
               setNewScheduleName('');
             }}
             contentContainerStyle={{
-              backgroundColor: '#fff',
+              backgroundColor: theme.colors.surface,
               padding: 24,
               margin: 20,
               borderRadius: 16,
             }}
           >
-            <Text variant="titleLarge" style={{ color: '#2563EB', marginBottom: 8 }}>
+            <Text variant="titleLarge" style={{ color: theme.colors.primary, marginBottom: 8 }}>
               Crear nuevo horario
             </Text>
-            <Text variant="bodyMedium" style={{ color: '#6B7280', marginBottom: 16 }}>
+            <Text variant="bodyMedium" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280', marginBottom: 16 }}>
               Ingresa un nombre para identificar este horario
             </Text>
             <TextInput
@@ -527,7 +529,7 @@ const HorariosScreen = observer(() => {
               value={newScheduleName}
               onChangeText={setNewScheduleName}
               mode="outlined"
-              style={{ marginBottom: 16, backgroundColor: '#F3F4F6' }}
+              style={{ marginBottom: 16, backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
             />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Button
@@ -558,13 +560,13 @@ const HorariosScreen = observer(() => {
             visible={isEditScheduleOpen}
             onDismiss={() => setIsEditScheduleOpen(false)}
             contentContainerStyle={{
-              backgroundColor: '#fff',
+              backgroundColor: theme.colors.surface,
               padding: 24,
               margin: 20,
               borderRadius: 16,
             }}
           >
-            <Text variant="titleLarge" style={{ color: '#2563EB', marginBottom: 16 }}>
+            <Text variant="titleLarge" style={{ color: theme.colors.primary, marginBottom: 16 }}>
               Editar nombre del horario
             </Text>
             <TextInput
@@ -572,7 +574,7 @@ const HorariosScreen = observer(() => {
               value={editingScheduleName}
               onChangeText={setEditingScheduleName}
               mode="outlined"
-              style={{ marginBottom: 16, backgroundColor: '#F3F4F6' }}
+              style={{ marginBottom: 16, backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
             />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Button mode="outlined" onPress={() => setIsEditScheduleOpen(false)} style={{ flex: 1 }}>
@@ -596,7 +598,7 @@ const HorariosScreen = observer(() => {
             visible={isSubjectDialogOpen}
             onDismiss={() => setIsSubjectDialogOpen(false)}
             contentContainerStyle={{
-              backgroundColor: '#fff',
+              backgroundColor: theme.colors.surface,
               padding: 24,
               margin: 20,
               borderRadius: 16,
@@ -604,7 +606,7 @@ const HorariosScreen = observer(() => {
             }}
           >
             <ScrollView>
-              <Text variant="titleLarge" style={{ color: '#2563EB', marginBottom: 16 }}>
+              <Text variant="titleLarge" style={{ color: theme.colors.primary, marginBottom: 16 }}>
                 Nombre de la materia:
               </Text>
               
@@ -614,10 +616,10 @@ const HorariosScreen = observer(() => {
                 value={newSubject.title}
                 onChangeText={(text) => setNewSubject({ ...newSubject, title: text })}
                 mode="outlined"
-                style={{ marginBottom: 16, backgroundColor: '#F3F4F6' }}
+                style={{ marginBottom: 16, backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
               />
 
-              <Text variant="titleMedium" style={{ color: '#2563EB', marginBottom: 12 }}>
+              <Text variant="titleMedium" style={{ color: theme.colors.primary, marginBottom: 12 }}>
                 Clases:
               </Text>
 
@@ -720,7 +722,7 @@ const HorariosScreen = observer(() => {
                 Añadir +
               </Button>
 
-              <Text variant="titleMedium" style={{ color: '#2563EB', marginBottom: 12 }}>
+              <Text variant="titleMedium" style={{ color: theme.colors.primary, marginBottom: 12 }}>
                 Color de la materia:
               </Text>
 

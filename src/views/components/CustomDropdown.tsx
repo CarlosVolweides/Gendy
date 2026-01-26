@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated, Modal, Pressable, Dimensions, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Portal } from 'react-native-paper';
+import { useTheme } from '../../context/ThemeContext';
 
 interface DropdownItem {
   label: string;
@@ -25,6 +26,7 @@ export function CustomDropdown({
   anchor,
   items,
 }: CustomDropdownProps) {
+  const { theme, themeMode } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const [anchorLayout, setAnchorLayout] = React.useState({ x: 0, y: 0, width: 0, height: 0 });
@@ -156,8 +158,18 @@ export function CustomDropdown({
             <Animated.View
               ref={dropdownRef}
               style={[
-                styles.dropdown,
                 {
+                  position: 'absolute',
+                  backgroundColor: theme.colors.surface,
+                  borderRadius: 8,
+                  elevation: 8,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 8,
+                  maxWidth: 280,
+                  zIndex: 1000,
+                  overflow: 'hidden',
                   top: dropdownPosition.top,
                   left: dropdownPosition.left,
                   minWidth: dropdownPosition.minWidth,
@@ -167,8 +179,8 @@ export function CustomDropdown({
               ]}
             >
               <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
+                style={{ maxHeight: 300 }}
+                contentContainerStyle={{ paddingVertical: 0 }}
                 nestedScrollEnabled
                 showsVerticalScrollIndicator={true}
               >
@@ -176,8 +188,12 @@ export function CustomDropdown({
                   <TouchableOpacity
                     key={item.value || index}
                     style={[
-                      styles.item,
-                      index === items.length - 1 && styles.lastItem,
+                      {
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        borderBottomWidth: index === items.length - 1 ? 0 : StyleSheet.hairlineWidth,
+                        borderBottomColor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+                      },
                     ]}
                     onPress={() => {
                       item.onPress();
@@ -187,7 +203,7 @@ export function CustomDropdown({
                   >
                     <Text
                       variant="bodyMedium"
-                      style={[styles.itemText, item.titleStyle]}
+                      style={[{ color: theme.colors.text, fontSize: 16 }, item.titleStyle]}
                     >
                       {item.label}
                     </Text>

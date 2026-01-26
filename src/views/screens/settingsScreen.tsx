@@ -15,6 +15,7 @@ import {
 import { useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { useTheme } from '../../context/ThemeContext';
 
 interface ScheduleDay {
   day: string;
@@ -134,20 +135,21 @@ const ModalContent = styled.View`
   border-radius: 16px;
 `;
 
-const RadioButtonContainer = styled.TouchableOpacity<{ selected: boolean }>`
+const RadioButtonContainer = styled.TouchableOpacity<{ selected: boolean; backgroundColor: string; borderColor: string }>`
   flex-direction: row;
   align-items: center;
   padding: 16px;
   border-radius: 8px;
   border-width: 1px;
-  border-color: ${({ selected }) => (selected ? '#06B6D4' : '#E5E7EB')};
-  background-color: ${({ selected }) => (selected ? '#ECFEFF' : '#fff')};
+  border-color: ${({ borderColor }) => borderColor};
+  background-color: ${({ backgroundColor }) => backgroundColor};
   margin-bottom: 8px;
 `;
 
 export default function SettingsScreen() {
   const route = useRoute();
   const schedules: Schedule[] = (route.params as any)?.schedules || [];
+  const { theme, themeMode } = useTheme();
 
   const [isNameDialogOpen, setIsNameDialogOpen] = React.useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = React.useState(false);
@@ -260,10 +262,10 @@ export default function SettingsScreen() {
           <Modal
             visible={isNameDialogOpen}
             onDismiss={() => setIsNameDialogOpen(false)}
-            contentContainerStyle={{ backgroundColor: '#fff', padding: 24, margin: 20, borderRadius: 16 }}
+            contentContainerStyle={{ backgroundColor: theme.colors.surface, padding: 24, margin: 20, borderRadius: 16 }}
           >
-            <Text variant="titleLarge" style={{ marginBottom: 8 }}>Cambiar nombre</Text>
-            <Text variant="bodyMedium" style={{ marginBottom: 16, color: '#6B7280' }}>
+            <Text variant="titleLarge" style={{ color: theme.colors.text, marginBottom: 8 }}>Cambiar nombre</Text>
+            <Text variant="bodyMedium" style={{ marginBottom: 16, color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
               Ingresa tu nuevo nombre de usuario
             </Text>
             <TextInput
@@ -272,7 +274,7 @@ export default function SettingsScreen() {
               onChangeText={setUserName}
               placeholder="Tu nombre"
               mode="outlined"
-              style={{ marginBottom: 16, backgroundColor: '#F3F4F6' }}
+              style={{ marginBottom: 16, backgroundColor: themeMode === 'dark' ? '#1E293B' : '#F3F4F6' }}
             />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Button
@@ -304,15 +306,15 @@ export default function SettingsScreen() {
               setIsExportDialogOpen(false);
               setSelectedScheduleToExport('');
             }}
-            contentContainerStyle={{ backgroundColor: '#fff', padding: 24, margin: 20, borderRadius: 16 }}
+            contentContainerStyle={{ backgroundColor: theme.colors.surface, padding: 24, margin: 20, borderRadius: 16 }}
           >
-            <Text variant="titleLarge" style={{ marginBottom: 8 }}>Exportar horario</Text>
-            <Text variant="bodyMedium" style={{ marginBottom: 16, color: '#6B7280' }}>
+            <Text variant="titleLarge" style={{ color: theme.colors.text, marginBottom: 8 }}>Exportar horario</Text>
+            <Text variant="bodyMedium" style={{ marginBottom: 16, color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
               Selecciona el horario que deseas exportar
             </Text>
             <ScrollView style={{ maxHeight: 300, marginBottom: 16 }}>
               {schedules.length === 0 ? (
-                <Text variant="bodyMedium" style={{ textAlign: 'center', color: '#9CA3AF', padding: 16 }}>
+                <Text variant="bodyMedium" style={{ textAlign: 'center', color: themeMode === 'dark' ? '#9CA3AF' : '#9CA3AF', padding: 16 }}>
                   No hay horarios disponibles
                 </Text>
               ) : (
@@ -320,6 +322,12 @@ export default function SettingsScreen() {
                   <RadioButtonContainer
                     key={schedule.id}
                     selected={selectedScheduleToExport === schedule.id}
+                    backgroundColor={selectedScheduleToExport === schedule.id 
+                      ? (themeMode === 'dark' ? '#1E3A5F' : '#ECFEFF')
+                      : theme.colors.surface}
+                    borderColor={selectedScheduleToExport === schedule.id 
+                      ? '#06B6D4'
+                      : (themeMode === 'dark' ? '#374151' : '#E5E7EB')}
                     onPress={() => setSelectedScheduleToExport(schedule.id)}
                   >
                     <RadioButton
@@ -328,10 +336,10 @@ export default function SettingsScreen() {
                       onPress={() => setSelectedScheduleToExport(schedule.id)}
                     />
                     <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text variant="bodyLarge" style={{ fontWeight: '500', color: '#1F2937' }}>
+                      <Text variant="bodyLarge" style={{ fontWeight: '500', color: theme.colors.text }}>
                         {schedule.name}
                       </Text>
-                      <Text variant="bodySmall" style={{ color: '#6B7280' }}>
+                      <Text variant="bodySmall" style={{ color: themeMode === 'dark' ? '#9CA3AF' : '#6B7280' }}>
                         {schedule.subjects.length} {schedule.subjects.length === 1 ? 'materia' : 'materias'}
                       </Text>
                     </View>
