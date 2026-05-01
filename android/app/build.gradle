@@ -4,6 +4,32 @@ apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
+// Resolve react-native-worklets path for pnpm
+def resolveWorkletsPath() {
+    def root = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+    def workletsDir = new File(root, "node_modules/.pnpm")
+    if (workletsDir.exists()) {
+        def workletsDirs = workletsDir.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File file) {
+                return file.isDirectory() && file.name.startsWith("react-native-worklets@")
+            }
+        })
+        if (workletsDirs != null && workletsDirs.length > 0) {
+            def workletsPath = new File(workletsDirs[0], "node_modules/react-native-worklets")
+            if (workletsPath.exists()) {
+                return workletsPath.absolutePath
+            }
+        }
+    }
+    return null
+}
+
+def workletsPath = resolveWorkletsPath()
+if (workletsPath != null) {
+    project.ext.REACT_NATIVE_WORKLETS_NODE_MODULES_DIR = workletsPath
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
